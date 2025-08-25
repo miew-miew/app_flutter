@@ -24,19 +24,26 @@ class HabitAdapter extends TypeAdapter<Habit> {
       colorValue: fields[4] as int?,
       scheduleId: fields[5] as String,
       targetPerDay: fields[6] as int,
-      targetDurationMinutes: fields[7] as int?,
+      targetDurationSeconds: fields[7] as int?,
       isArchived: fields[8] as bool,
       createdAt: fields[9] as DateTime,
       updatedAt: fields[10] as DateTime,
       orderIndex: fields[11] as int,
       tagIds: (fields[12] as List?)?.cast<String>(),
+      trackingType: fields[13] as TrackingType?,
+      frequency: fields[14] as String?,
+      weeklyDays: (fields[15] as List?)?.cast<int>(),
+      timesPerWeek: fields[16] as int?,
+      reminderTime: fields[17] as String?,
+      startDate: fields[18] as DateTime?,
+      endDate: fields[19] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Habit obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -52,7 +59,7 @@ class HabitAdapter extends TypeAdapter<Habit> {
       ..writeByte(6)
       ..write(obj.targetPerDay)
       ..writeByte(7)
-      ..write(obj.targetDurationMinutes)
+      ..write(obj.targetDurationSeconds)
       ..writeByte(8)
       ..write(obj.isArchived)
       ..writeByte(9)
@@ -62,7 +69,21 @@ class HabitAdapter extends TypeAdapter<Habit> {
       ..writeByte(11)
       ..write(obj.orderIndex)
       ..writeByte(12)
-      ..write(obj.tagIds);
+      ..write(obj.tagIds)
+      ..writeByte(13)
+      ..write(obj.trackingType)
+      ..writeByte(14)
+      ..write(obj.frequency)
+      ..writeByte(15)
+      ..write(obj.weeklyDays)
+      ..writeByte(16)
+      ..write(obj.timesPerWeek)
+      ..writeByte(17)
+      ..write(obj.reminderTime)
+      ..writeByte(18)
+      ..write(obj.startDate)
+      ..writeByte(19)
+      ..write(obj.endDate);
   }
 
   @override

@@ -15,7 +15,6 @@ import 'presentation/pages/create_habit_page.dart';
 import 'presentation/pages/settings_page.dart';
 import 'data/boxes.dart';
 import 'core/providers.dart';
-import 'data/models/tracking_type_adapter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

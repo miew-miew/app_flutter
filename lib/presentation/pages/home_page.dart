@@ -23,12 +23,15 @@ class _HomePageState extends State<HomePage> {
   String _userName = '';
   DateTime _selectedDate = DateTime.now();
   late List<DateTime> _weekDates;
+  // Ticker pour rafraîchir l'affichage du chrono
+  bool _tickActive = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
     _generateWeekDates();
+    _startTicker();
   }
 
   void _generateWeekDates() {
@@ -43,6 +46,25 @@ class _HomePageState extends State<HomePage> {
     // Mettre à jour la date sélectionnée si elle n'est pas dans la semaine actuelle
     if (!_weekDates.contains(_selectedDate)) {
       _selectedDate = now;
+    }
+  }
+
+  @override
+  void dispose() {
+    _tickActive = false;
+    super.dispose();
+  }
+
+  void _startTicker() async {
+    _tickActive = true;
+    while (_tickActive && mounted) {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) break;
+      // Si au moins un timer est actif, rafraîchir l'écran chaque seconde
+      final svc = Provider.of<HabitService>(context, listen: false);
+      if (svc.hasActiveTimers()) {
+        setState(() {});
+      }
     }
   }
 
@@ -412,14 +434,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String _formatMMSS(int minutes) {
-    if (minutes <= 0) return '00:00';
-    final int totalSeconds = minutes * 60;
+  String _formatHMS(int totalSeconds) {
+    if (totalSeconds < 0) totalSeconds = 0;
     final int hours = totalSeconds ~/ 3600;
     final int mins = (totalSeconds % 3600) ~/ 60;
     final int secs = totalSeconds % 60;
     if (hours > 0) {
-      return '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}';
+      return '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
     }
     return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
@@ -428,32 +449,100 @@ class _HomePageState extends State<HomePage> {
     final svc = Provider.of<HabitService>(context, listen: false);
     switch (habit.trackingType) {
       case TrackingType.quantity:
-        return Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.blue.shade300, width: 2),
-          ),
-          child: Icon(Icons.add, color: Colors.blue.shade500, size: 20),
+        return FutureBuilder<int>(
+          future: svc.getTodayQuantityCount(habit.id),
+          builder: (context, snap) {
+            final int count = snap.data ?? 0;
+            final bool done =
+                count >= (habit.targetPerDay <= 1 ? 1 : habit.targetPerDay);
+            if (done) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade400,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 20),
+              );
+            }
+            return Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.blue.shade300, width: 2),
+              ),
+              child: Icon(Icons.add, color: Colors.blue.shade500, size: 20),
+            );
+          },
         );
       case TrackingType.time:
-        final bool active = svc.isTimerActive(habit.id);
-        return Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: Colors.yellow.shade200,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            active ? Icons.pause : Icons.play_arrow,
-            color: Colors.black87,
-            size: 22,
-          ),
+        return FutureBuilder<int>(
+          future: svc.getTodayDurationSeconds(habit.id),
+          builder: (context, snap) {
+            final int seconds = snap.data ?? 0;
+            final int targetSeconds = habit.targetDurationSeconds ?? 0;
+            final bool done = targetSeconds > 0 && seconds >= targetSeconds;
+
+            if (done) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade400,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 20),
+              );
+            }
+
+            final bool active = svc.isTimerActive(habit.id);
+            return Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.yellow.shade200,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                active ? Icons.pause : Icons.play_arrow,
+                color: Colors.black87,
+                size: 22,
+              ),
+            );
+          },
         );
       case TrackingType.task:
+        return FutureBuilder<bool>(
+          future: svc.isTaskCompletedToday(habit.id),
+          builder: (context, snap) {
+            final bool done = snap.data ?? false;
+            if (done) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.green.shade400,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 20),
+              );
+            }
+            return Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.red.shade300, width: 2),
+              ),
+            );
+          },
+        );
+      case null:
+        // Fallback pour les anciennes habitudes sans trackingType
         return Container(
           width: 36,
           height: 36,
@@ -472,18 +561,22 @@ class _HomePageState extends State<HomePage> {
       case TrackingType.quantity:
         final count = await svc.getTodayQuantityCount(habit.id);
         final target = habit.targetPerDay <= 1 ? 1 : habit.targetPerDay;
+        final bool done = count >= target;
         return _CardData(
-          subtitle: '$count/$target fois',
+          subtitle: done ? 'Complété' : '$count/$target fois',
           onTap: () async {
             await svc.incrementQuantityToday(habit);
             if (mounted) setState(() {});
           },
         );
       case TrackingType.time:
-        final minutes = await svc.getTodayDurationMinutes(habit.id);
-        final targetMin = habit.targetDurationMinutes ?? 0;
+        final seconds = await svc.getTodayDurationSeconds(habit.id);
+        final targetSeconds = habit.targetDurationSeconds ?? 0;
+        final bool done = targetSeconds > 0 && seconds >= targetSeconds;
         return _CardData(
-          subtitle: '${_formatMMSS(minutes)}/${_formatMMSS(targetMin)}',
+          subtitle: done
+              ? 'Complété'
+              : '${_formatHMS(seconds)}/${_formatHMS(targetSeconds)}',
           onTap: () async {
             await svc.toggleTimeTracking(habit);
             if (mounted) setState(() {});
@@ -500,6 +593,15 @@ class _HomePageState extends State<HomePage> {
             }
           },
         );
+      case null:
+        // Fallback pour les anciennes habitudes sans trackingType
+        return _CardData(
+          subtitle: 'Non complété',
+          onTap: () async {
+            await svc.completeTaskToday(habit);
+            if (mounted) setState(() {});
+          },
+        );
     }
   }
 
@@ -511,12 +613,15 @@ class _HomePageState extends State<HomePage> {
           onTap: () {},
         );
       case TrackingType.time:
-        final int targetMin = habit.targetDurationMinutes ?? 0;
+        final int targetSeconds = habit.targetDurationSeconds ?? 0;
         return _CardData(
-          subtitle: '${_formatMMSS(0)}/${_formatMMSS(targetMin)}',
+          subtitle: '${_formatHMS(0)}/${_formatHMS(targetSeconds)}',
           onTap: () {},
         );
       case TrackingType.task:
+        return _CardData(subtitle: 'Non complété', onTap: () {});
+      case null:
+        // Fallback pour les anciennes habitudes sans trackingType
         return _CardData(subtitle: 'Non complété', onTap: () {});
     }
   }

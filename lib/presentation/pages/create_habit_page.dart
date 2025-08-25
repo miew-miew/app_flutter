@@ -152,11 +152,11 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
 
       // Mapper selon le type de suivi
       int targetPerDay = 1;
-      int? targetDurationMinutes;
+      int? targetDurationSeconds;
       if (_trackingType == TrackingType.quantity) {
         targetPerDay = int.tryParse(_quantityController.text.trim()) ?? 1;
       } else if (_trackingType == TrackingType.time) {
-        targetDurationMinutes = _timeDuration.inMinutes;
+        targetDurationSeconds = _timeDuration.inSeconds;
       }
 
       await habitService.createHabit(
@@ -166,7 +166,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
             ? null
             : _emojiController.text.trim(),
         targetPerDay: targetPerDay,
-        targetDurationMinutes: targetDurationMinutes,
+        targetDurationSeconds: targetDurationSeconds,
         trackingType: _trackingType,
       );
 

@@ -31,7 +31,7 @@ class HabitService {
     String? iconEmoji,
     int? colorValue,
     int targetPerDay = 1,
-    int? targetDurationMinutes,
+    int? targetDurationSeconds,
     List<String>? tagIds,
     TrackingType trackingType = TrackingType.task,
   }) async {
@@ -43,7 +43,7 @@ class HabitService {
       colorValue: colorValue,
       scheduleId: scheduleId,
       targetPerDay: targetPerDay,
-      targetDurationMinutes: targetDurationMinutes,
+      targetDurationSeconds: targetDurationSeconds,
       isArchived: false,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -65,7 +65,7 @@ class HabitService {
     int? colorValue,
     String? scheduleId,
     int? targetPerDay,
-    int? targetDurationMinutes,
+    int? targetDurationSeconds,
     List<String>? tagIds,
     TrackingType? trackingType,
   }) async {
@@ -82,8 +82,8 @@ class HabitService {
       colorValue: colorValue ?? existingHabit.colorValue,
       scheduleId: scheduleId ?? existingHabit.scheduleId,
       targetPerDay: targetPerDay ?? existingHabit.targetPerDay,
-      targetDurationMinutes:
-          targetDurationMinutes ?? existingHabit.targetDurationMinutes,
+      targetDurationSeconds:
+          targetDurationSeconds ?? existingHabit.targetDurationSeconds,
       isArchived: existingHabit.isArchived,
       createdAt: existingHabit.createdAt,
       updatedAt: DateTime.now(),
@@ -111,13 +111,43 @@ class HabitService {
     final habits = await getAllHabits(includeArchived: false);
 
     // Filtrer les habitudes qui doivent être faites aujourd'hui
-    return habits.where((habit) {
-      // TODO: Plus tard, on pourra ajouter la logique de planning ici
-      // - Habitudes quotidiennes (tous les jours)
-      // - Habitudes en semaine (lundi à vendredi)
-      // - Habitudes certains jours spécifiques
-      return true;
-    }).toList();
+    return habits
+        .where((habit) {
+          // TODO: Plus tard, on pourra ajouter la logique de planning ici
+          // - Habitudes quotidiennes (tous les jours)
+          // - Habitudes en semaine (lundi à vendredi)
+          // - Habitudes certains jours spécifiques
+          return true;
+        })
+        .map((habit) {
+          // Si trackingType est null, le définir par défaut comme task
+          if (habit.trackingType == null) {
+            return Habit(
+              id: habit.id,
+              title: habit.title,
+              description: habit.description,
+              iconEmoji: habit.iconEmoji,
+              colorValue: habit.colorValue,
+              scheduleId: habit.scheduleId,
+              targetPerDay: habit.targetPerDay,
+              targetDurationSeconds: habit.targetDurationSeconds,
+              isArchived: habit.isArchived,
+              createdAt: habit.createdAt,
+              updatedAt: habit.updatedAt,
+              orderIndex: habit.orderIndex,
+              tagIds: habit.tagIds,
+              trackingType: TrackingType.task, // Valeur par défaut
+              frequency: habit.frequency,
+              weeklyDays: habit.weeklyDays,
+              timesPerWeek: habit.timesPerWeek,
+              reminderTime: habit.reminderTime,
+              startDate: habit.startDate,
+              endDate: habit.endDate,
+            );
+          }
+          return habit;
+        })
+        .toList();
   }
 
   // === UTILITAIRES ===
@@ -230,12 +260,45 @@ class HabitService {
   Future<int> getTodayDurationMinutes(String habitId) async {
     final Box<HabitLog> box = Boxes.habitLogsBox();
     final DateTime today = _dayKey(DateTime.now());
-    return box.values
+    int minutesFromLogs = box.values
         .where(
           (l) =>
               l.habitId == habitId && _dayKey(l.date).isAtSameMomentAs(today),
         )
         .fold<int>(0, (sum, l) => sum + (l.durationMinutes ?? 0));
+
+    // Ajouter le temps en cours si un timer est actif
+    if (_activeTimers.containsKey(habitId)) {
+      final DateTime start = _activeTimers[habitId]!;
+      final int runningMinutes = DateTime.now().difference(start).inMinutes;
+      if (runningMinutes > 0) {
+        minutesFromLogs += runningMinutes;
+      }
+    }
+
+    return minutesFromLogs;
+  }
+
+  /// Retourne la durée cumulée aujourd'hui (en secondes) pour une habitude temps
+  Future<int> getTodayDurationSeconds(String habitId) async {
+    final Box<HabitLog> box = Boxes.habitLogsBox();
+    final DateTime today = _dayKey(DateTime.now());
+    int secondsFromLogs = box.values
+        .where(
+          (l) =>
+              l.habitId == habitId && _dayKey(l.date).isAtSameMomentAs(today),
+        )
+        .fold<int>(0, (sum, l) => sum + ((l.durationMinutes ?? 0) * 60));
+
+    if (_activeTimers.containsKey(habitId)) {
+      final DateTime start = _activeTimers[habitId]!;
+      final int runningSeconds = DateTime.now().difference(start).inSeconds;
+      if (runningSeconds > 0) {
+        secondsFromLogs += runningSeconds;
+      }
+    }
+
+    return secondsFromLogs;
   }
 
   /// Indique si une tâche simple est complétée aujourd'hui
@@ -244,6 +307,7 @@ class HabitService {
   }
 
   bool isTimerActive(String habitId) => _activeTimers.containsKey(habitId);
+  bool hasActiveTimers() => _activeTimers.isNotEmpty;
 
   // Helpers
   DateTime _dayKey(DateTime d) => DateTime(d.year, d.month, d.day);

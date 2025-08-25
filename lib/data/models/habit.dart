@@ -30,9 +30,9 @@ class Habit {
   @HiveField(6)
   final int targetPerDay;
 
-  // Minutes à viser pour une occurrence (facultatif)
+  // Secondes à viser pour une occurrence (facultatif)
   @HiveField(7)
-  final int? targetDurationMinutes;
+  final int? targetDurationSeconds;
 
   @HiveField(8)
   final bool isArchived;
@@ -53,11 +53,11 @@ class Habit {
 
   // === Nouveaux champs ===
   @HiveField(13)
-  final TrackingType trackingType; // tâche, quantité, temps
+  final TrackingType? trackingType; // tâche, quantité, temps
 
   // Fréquence: daily/weekly/custom
   @HiveField(14)
-  final String frequency; // 'daily' | 'weekly' | 'custom'
+  final String? frequency; // 'daily' | 'weekly' | 'custom'
 
   // Si weekly: jours de semaine (1=lun..7=dim)
   @HiveField(15)
@@ -86,14 +86,14 @@ class Habit {
     this.colorValue,
     required this.scheduleId,
     this.targetPerDay = 1,
-    this.targetDurationMinutes,
+    this.targetDurationSeconds,
     this.isArchived = false,
     required this.createdAt,
     required this.updatedAt,
     this.orderIndex = 0,
     this.tagIds,
-    this.trackingType = TrackingType.task,
-    this.frequency = 'daily',
+    this.trackingType,
+    this.frequency,
     this.weeklyDays,
     this.timesPerWeek,
     this.reminderTime,
