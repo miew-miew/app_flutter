@@ -24,6 +24,8 @@ enum HabitStatus {
   skipped,
   @HiveField(2)
   missed,
+  @HiveField(3)
+  running, // Timer actif en cours
 }
 
 @HiveType(typeId: 8)

@@ -79,6 +79,9 @@ class _HomePageState extends State<HomePage> {
   void _selectDate(DateTime date) {
     setState(() {
       _selectedDate = date;
+      // Recréer la future en ciblant la nouvelle date sans refetch global
+      final svc = Provider.of<HabitService>(context, listen: false);
+      _habitsFuture = svc.getHabitsForDate(_selectedDate);
     });
   }
 
@@ -88,6 +91,8 @@ class _HomePageState extends State<HomePage> {
           .map((date) => date.subtract(const Duration(days: 7)))
           .toList();
       _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+      final svc = Provider.of<HabitService>(context, listen: false);
+      _habitsFuture = svc.getHabitsForDate(_selectedDate);
     });
   }
 
@@ -97,6 +102,8 @@ class _HomePageState extends State<HomePage> {
           .map((date) => date.add(const Duration(days: 7)))
           .toList();
       _selectedDate = _selectedDate.add(const Duration(days: 7));
+      final svc = Provider.of<HabitService>(context, listen: false);
+      _habitsFuture = svc.getHabitsForDate(_selectedDate);
     });
   }
 
@@ -104,6 +111,8 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedDate = DateTime.now();
       _generateWeekDates();
+      final svc = Provider.of<HabitService>(context, listen: false);
+      _habitsFuture = svc.getHabitsForDate(_selectedDate);
     });
   }
 
@@ -326,8 +335,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHabitsList(HabitService habitService) {
-    // On mémorise la future pour éviter de relancer et de remonter la liste à chaque setState
-    _habitsFuture ??= habitService.getTodayHabits();
+    // Future pilotée par _selectedDate, évite clignotement
+    _habitsFuture ??= habitService.getHabitsForDate(_selectedDate);
     return FutureBuilder<List<Habit>>(
       future: _habitsFuture,
       builder: (context, snapshot) {
@@ -449,8 +458,39 @@ class _HomePageState extends State<HomePage> {
     final svc = Provider.of<HabitService>(context, listen: false);
     switch (habit.trackingType) {
       case TrackingType.quantity:
+        // Jours futurs: afficher "en attente"
+        final bool isFuture =
+            DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+            ).isAfter(
+              DateTime.now().copyWith(
+                hour: 0,
+                minute: 0,
+                second: 0,
+                millisecond: 0,
+                microsecond: 0,
+              ),
+            );
+        if (isFuture) {
+          return Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.orange.shade300, width: 2),
+            ),
+            child: Icon(
+              Icons.hourglass_empty,
+              color: Colors.orange.shade400,
+              size: 18,
+            ),
+          );
+        }
         return FutureBuilder<int>(
-          future: svc.getTodayQuantityCount(habit.id),
+          future: svc.getQuantityCountForDate(habit.id, _selectedDate),
           builder: (context, snap) {
             final int count = snap.data ?? 0;
             final bool done =
@@ -479,8 +519,39 @@ class _HomePageState extends State<HomePage> {
           },
         );
       case TrackingType.time:
+        // Jours futurs: afficher "en attente"
+        final bool isFutureTime =
+            DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+            ).isAfter(
+              DateTime.now().copyWith(
+                hour: 0,
+                minute: 0,
+                second: 0,
+                millisecond: 0,
+                microsecond: 0,
+              ),
+            );
+        if (isFutureTime) {
+          return Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.orange.shade300, width: 2),
+            ),
+            child: Icon(
+              Icons.hourglass_empty,
+              color: Colors.orange.shade400,
+              size: 18,
+            ),
+          );
+        }
         return FutureBuilder<int>(
-          future: svc.getTodayDurationSeconds(habit.id),
+          future: svc.getDurationSecondsForDate(habit.id, _selectedDate),
           builder: (context, snap) {
             final int seconds = snap.data ?? 0;
             final int targetSeconds = habit.targetDurationSeconds ?? 0;
@@ -516,7 +587,7 @@ class _HomePageState extends State<HomePage> {
         );
       case TrackingType.task:
         return FutureBuilder<bool>(
-          future: svc.isTaskCompletedToday(habit.id),
+          future: svc.isTaskCompletedOnDate(habit.id, _selectedDate),
           builder: (context, snap) {
             final bool done = snap.data ?? false;
             if (done) {
@@ -530,6 +601,65 @@ class _HomePageState extends State<HomePage> {
                 child: const Icon(Icons.check, color: Colors.white, size: 20),
               );
             }
+            // Jour futur => en attente
+            final isFuture =
+                DateTime(
+                  _selectedDate.year,
+                  _selectedDate.month,
+                  _selectedDate.day,
+                ).isAfter(
+                  DateTime.now().copyWith(
+                    hour: 0,
+                    minute: 0,
+                    second: 0,
+                    millisecond: 0,
+                    microsecond: 0,
+                  ),
+                );
+            if (isFuture) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.orange.shade300, width: 2),
+                ),
+                child: Icon(
+                  Icons.hourglass_empty,
+                  color: Colors.orange.shade400,
+                  size: 18,
+                ),
+              );
+            }
+            // Jour passé et non complété => manqué
+            final isPast =
+                DateTime(
+                  _selectedDate.year,
+                  _selectedDate.month,
+                  _selectedDate.day,
+                ).isBefore(
+                  DateTime.now().copyWith(
+                    hour: 0,
+                    minute: 0,
+                    second: 0,
+                    millisecond: 0,
+                    microsecond: 0,
+                  ),
+                );
+            if (isPast) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.red.shade300, width: 2),
+                ),
+                child: Icon(Icons.close, color: Colors.red.shade400, size: 18),
+              );
+            }
+            // Aujourd'hui non complété
             return Container(
               width: 36,
               height: 36,
@@ -559,18 +689,27 @@ class _HomePageState extends State<HomePage> {
     final svc = Provider.of<HabitService>(context, listen: false);
     switch (habit.trackingType) {
       case TrackingType.quantity:
-        final count = await svc.getTodayQuantityCount(habit.id);
+        final count = await svc.getQuantityCountForDate(
+          habit.id,
+          _selectedDate,
+        );
         final target = habit.targetPerDay <= 1 ? 1 : habit.targetPerDay;
         final bool done = count >= target;
         return _CardData(
           subtitle: done ? 'Complété' : '$count/$target fois',
           onTap: () async {
-            await svc.incrementQuantityToday(habit);
-            if (mounted) setState(() {});
+            // Incrémente seulement si on est sur aujourd'hui
+            if (_isSelected(DateTime.now())) {
+              await svc.incrementQuantityToday(habit);
+              if (mounted) setState(() {});
+            }
           },
         );
       case TrackingType.time:
-        final seconds = await svc.getTodayDurationSeconds(habit.id);
+        final seconds = await svc.getDurationSecondsForDate(
+          habit.id,
+          _selectedDate,
+        );
         final targetSeconds = habit.targetDurationSeconds ?? 0;
         final bool done = targetSeconds > 0 && seconds >= targetSeconds;
         return _CardData(
@@ -578,16 +717,18 @@ class _HomePageState extends State<HomePage> {
               ? 'Complété'
               : '${_formatHMS(seconds)}/${_formatHMS(targetSeconds)}',
           onTap: () async {
-            await svc.toggleTimeTracking(habit);
-            if (mounted) setState(() {});
+            if (_isSelected(DateTime.now())) {
+              await svc.toggleTimeTracking(habit);
+              if (mounted) setState(() {});
+            }
           },
         );
       case TrackingType.task:
-        final done = await svc.isTaskCompletedToday(habit.id);
+        final done = await svc.isTaskCompletedOnDate(habit.id, _selectedDate);
         return _CardData(
           subtitle: done ? 'Complété' : 'Non complété',
           onTap: () async {
-            if (!done) {
+            if (!done && _isSelected(DateTime.now())) {
               await svc.completeTaskToday(habit);
               if (mounted) setState(() {});
             }

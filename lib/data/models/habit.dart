@@ -55,17 +55,13 @@ class Habit {
   @HiveField(13)
   final TrackingType? trackingType; // tâche, quantité, temps
 
-  // Fréquence: daily/weekly/custom
+  // Fréquence: daily/custom
   @HiveField(14)
-  final String? frequency; // 'daily' | 'weekly' | 'custom'
+  final String? frequency; // 'daily' | 'custom'
 
-  // Si weekly: jours de semaine (1=lun..7=dim)
+  // Si custom: jours de semaine (1=lun..7=dim)
   @HiveField(15)
   final List<int>? weeklyDays;
-
-  // Si custom: nb de fois/semaine
-  @HiveField(16)
-  final int? timesPerWeek;
 
   // Rappel à HH:mm (ex: 20:30)
   @HiveField(17)
@@ -95,7 +91,6 @@ class Habit {
     this.trackingType,
     this.frequency,
     this.weeklyDays,
-    this.timesPerWeek,
     this.reminderTime,
     this.startDate,
     this.endDate,

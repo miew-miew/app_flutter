@@ -35,6 +35,7 @@ void main() async {
     ..registerAdapter(AppThemeModeAdapter());
 
   await Hive.openBox<Habit>(Boxes.habits);
+  await Hive.openBox<HabitSchedule>(Boxes.habitSchedules);
   await Hive.openBox<HabitLog>(Boxes.habitLogs);
   await Hive.openBox<AppSettings>(Boxes.appSettings);
 

@@ -73,6 +73,8 @@ class HabitStatusAdapter extends TypeAdapter<HabitStatus> {
         return HabitStatus.skipped;
       case 2:
         return HabitStatus.missed;
+      case 3:
+        return HabitStatus.running;
       default:
         return HabitStatus.done;
     }
@@ -89,6 +91,9 @@ class HabitStatusAdapter extends TypeAdapter<HabitStatus> {
         break;
       case HabitStatus.missed:
         writer.writeByte(2);
+        break;
+      case HabitStatus.running:
+        writer.writeByte(3);
         break;
     }
   }

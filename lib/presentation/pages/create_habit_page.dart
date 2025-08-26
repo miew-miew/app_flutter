@@ -26,11 +26,8 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
   );
   Duration _timeDuration = const Duration(minutes: 25);
 
-  String _frequency = 'daily'; // daily | weekly | custom
+  String _frequency = 'daily'; // daily | custom
   final Set<int> _weeklyDays = {1, 2, 3, 4, 5, 6, 7}; // L..D par défaut
-  final TextEditingController _timesPerWeekController = TextEditingController(
-    text: '3',
-  );
 
   TimeOfDay? _reminder;
   DateTime? _startDate = DateTime.now();
@@ -43,7 +40,6 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
   void dispose() {
     _titleController.dispose();
     _emojiController.dispose();
-    _timesPerWeekController.dispose();
     _quantityController.dispose();
     super.dispose();
   }
@@ -60,12 +56,13 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
 
   Future<void> _pickDate({required bool isStart}) async {
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final base = isStart
-        ? (_startDate ?? now)
-        : (_endDate ?? now.add(const Duration(days: 7)));
+        ? (_startDate ?? today)
+        : (_endDate ?? (_startDate ?? today).add(const Duration(days: 7)));
     final res = await showDatePicker(
       context: context,
-      firstDate: DateTime(now.year - 5),
+      firstDate: isStart ? today : (_startDate ?? today),
       lastDate: DateTime(now.year + 10),
       initialDate: base,
     );
@@ -159,9 +156,43 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
         targetDurationSeconds = _timeDuration.inSeconds;
       }
 
+      // Créer un ID unique pour le schedule
+      final scheduleId = 'schedule_${DateTime.now().millisecondsSinceEpoch}';
+
+      // Déterminer le type de schedule
+      ScheduleType scheduleType;
+      List<int>? daysOfWeek;
+
+      if (_frequency == 'daily') {
+        scheduleType = ScheduleType.daily;
+      } else if (_frequency == 'custom') {
+        scheduleType = ScheduleType.customDays;
+        daysOfWeek = List.from(_weeklyDays);
+      } else {
+        scheduleType = ScheduleType.daily; // Par défaut
+      }
+
+      // Créer le schedule d'abord
+      await habitService.createHabitSchedule(
+        id: scheduleId,
+        type: scheduleType,
+        daysOfWeek: daysOfWeek,
+        times: _reminder != null
+            ? [
+                '${_reminder!.hour.toString().padLeft(2, '0')}:${_reminder!.minute.toString().padLeft(2, '0')}',
+              ]
+            : null,
+        timezone: null,
+        startDate: _startDate!,
+        endDate: _noEnd ? null : _endDate,
+        intervalN: null,
+        specificDates: null,
+      );
+
+      // Créer l'habitude avec le schedule
       await habitService.createHabit(
         title: _titleController.text.trim(),
-        scheduleId: 'daily',
+        scheduleId: scheduleId,
         iconEmoji: _emojiController.text.trim().isEmpty
             ? null
             : _emojiController.text.trim(),
@@ -325,20 +356,15 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                       child: Text('Quotidienne'),
                     ),
                     DropdownMenuItem(
-                      value: 'weekly',
-                      child: Text('Hebdomadaire'),
-                    ),
-                    DropdownMenuItem(
                       value: 'custom',
-                      child: Text('Personnalisée (x fois/semaine)'),
+                      child: Text('Personnalisée'),
                     ),
                   ],
                   onChanged: (v) => setState(() => _frequency = v ?? 'daily'),
                 ),
                 const SizedBox(height: 8),
 
-                if (_frequency == 'weekly') _buildWeeklyDaysPicker(),
-                if (_frequency == 'custom') _buildTimesPerWeek(),
+                if (_frequency == 'custom') _buildWeeklyDaysPicker(),
 
                 const SizedBox(height: 16),
 
@@ -503,33 +529,6 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
           );
         }),
       ),
-    );
-  }
-
-  Widget _buildTimesPerWeek() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Nombre de fois par semaine',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _timesPerWeekController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'ex: 3',
-          ),
-          validator: (v) {
-            if (_frequency != 'custom') return null;
-            final n = int.tryParse((v ?? '').trim());
-            if (n == null || n < 1) return '>= 1';
-            return null;
-          },
-        ),
-      ],
     );
   }
 }
