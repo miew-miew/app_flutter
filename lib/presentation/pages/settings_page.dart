@@ -36,14 +36,18 @@ class SettingsPage extends StatelessWidget {
       // Ouvrir si nécessaire
       if (!Hive.isBoxOpen(Boxes.habits)) await Hive.openBox(Boxes.habits);
       if (!Hive.isBoxOpen(Boxes.habitLogs)) await Hive.openBox(Boxes.habitLogs);
-      if (!Hive.isBoxOpen(Boxes.habitSchedules))
+      if (!Hive.isBoxOpen(Boxes.habitSchedules)) {
         await Hive.openBox(Boxes.habitSchedules);
-      if (!Hive.isBoxOpen(Boxes.habitReminders))
+      }
+      if (!Hive.isBoxOpen(Boxes.habitReminders)) {
         await Hive.openBox(Boxes.habitReminders);
-      if (!Hive.isBoxOpen(Boxes.userProfile))
+      }
+      if (!Hive.isBoxOpen(Boxes.userProfile)) {
         await Hive.openBox(Boxes.userProfile);
-      if (!Hive.isBoxOpen(Boxes.appSettings))
+      }
+      if (!Hive.isBoxOpen(Boxes.appSettings)) {
         await Hive.openBox(Boxes.appSettings);
+      }
 
       // Supprimer toutes les boxes du disque
       await Boxes.habitsBox().deleteFromDisk();

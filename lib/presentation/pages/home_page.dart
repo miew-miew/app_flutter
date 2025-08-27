@@ -413,7 +413,9 @@ class _HomePageState extends State<HomePage> {
       future: _getCardData(habit),
       builder: (context, snapshot) {
         final card = snapshot.data ?? _fallbackCard(habit);
-        return Container(
+        return GestureDetector(
+          onLongPress: () => _showHabitActions(habit),
+          child: Container(
           margin: const EdgeInsets.only(bottom: 15),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -474,6 +476,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          ),
         );
       },
     );
@@ -488,6 +491,80 @@ class _HomePageState extends State<HomePage> {
       return '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
     }
     return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+  }
+
+  void _showHabitActions(Habit habit) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Modifier'),
+                onTap: () => Navigator.pop(context, 'edit'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Supprimer'),
+                onTap: () => Navigator.pop(context, 'delete'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!mounted || action == null) return;
+    if (action == 'edit') {
+      final updated = await Navigator.of(context).pushNamed(
+        '/edit-habit',
+        arguments: {'habitId': habit.id},
+      );
+      if (!context.mounted) return;
+      if (updated == true) {
+        final svc = Provider.of<HabitService>(context, listen: false);
+        setState(() {
+          _habitsFuture = svc.getHabitsForDate(_selectedDate);
+        });
+      }
+    } else if (action == 'delete') {
+      _confirmDelete(habit);
+    }
+  }
+
+
+  void _confirmDelete(Habit habit) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Supprimer'),
+          content: Text('Supprimer l\'habitude "${habit.title}" ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () async {
+                final svc = Provider.of<HabitService>(context, listen: false);
+                await svc.deleteHabit(habit.id);
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                _habitsFuture = svc.getHabitsForDate(_selectedDate);
+                if (!context.mounted) return;
+                setState(() {});
+              },
+              child: const Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildTrailingAction(Habit habit) {

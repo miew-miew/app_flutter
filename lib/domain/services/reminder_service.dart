@@ -18,7 +18,6 @@ class ReminderService {
   Timer? _timer;
   // Avoid duplicate events within the same minute per habit
   final Set<String> _emittedKeys = <String>{};
-  bool debugLogs = true;
 
   ReminderService(this._habitRepository) {
     _start();
@@ -46,10 +45,7 @@ class ReminderService {
 
     final int weekday = now.weekday; // 1=lundi..7=dimanche
 
-    if (debugLogs) {
-      // ignore: avoid_print
-      print('[ReminderService] tick $hhmm, habits=${habits.length}, schedules=${schedules.length}');
-    }
+    // debug logging removed
 
     for (final habit in habits.where((h) => !h.isArchived)) {
       final HabitSchedule? schedule = scheduleById[habit.scheduleId];
@@ -72,10 +68,6 @@ class ReminderService {
       final String key = '${habit.id}_${minuteKey.toIso8601String()}';
       if (_emittedKeys.contains(key)) continue;
       _emittedKeys.add(key);
-      if (debugLogs) {
-        // ignore: avoid_print
-        print('[ReminderService] emit ${habit.title} at $hhmm');
-      }
       _controller.add(ReminderEvent(habit: habit, scheduledFor: minuteKey));
     }
 

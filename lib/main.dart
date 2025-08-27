@@ -13,6 +13,7 @@ import 'presentation/pages/splash_page.dart';
 import 'presentation/pages/onboarding_page.dart';
 import 'presentation/pages/create_habit_page.dart';
 import 'presentation/pages/settings_page.dart';
+import 'presentation/pages/edit_habit_page.dart';
 import 'data/boxes.dart';
 import 'core/providers.dart';
 
@@ -59,6 +60,15 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const HomePage(),
           '/create-habit': (context) => const CreateHabitPage(),
           '/settings': (context) => const SettingsPage(),
+          // Edit route expects arguments: { 'habitId': String }
+          '/edit-habit': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as Map?;
+            final habitId = args?['habitId'] as String?;
+            if (habitId == null) {
+              return const Scaffold(body: Center(child: Text('HabitId manquant')));
+            }
+            return EditHabitPage(habitId: habitId);
+          },
         },
       ),
     );
