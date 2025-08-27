@@ -88,15 +88,15 @@ Avant de créer une branche, récupérez les dernières modifications de `main` 
 ```bash
 git checkout main
 git pull origin main
+```
 
-
-2) Créer et basculer sur une branche de travail
+## 2️⃣ Créer et basculer sur une branche de travail
 
 ```bash
 git checkout -b feature/ui
 ```
 
-3) Commiter et pousser la branche
+## 3️⃣ Commiter et pousser vos changements
 
 ```bash
 git add .
@@ -104,13 +104,13 @@ git commit -m "feat: description courte"
 git push -u origin feature/ui
 ```
 
-4) Synchroniser votre branche avec main
+## 4️⃣ Synchroniser votre branche avec main
 
 ```bash
 git pull origin main
 ```
 
-5) Ouvrir une Pull Request (PR)
+## 5️⃣ Ouvrir une Pull Request (PR)
 
 - Sur GitHub: “Compare & pull request” (ou “New pull request”)
 - Base: `main`, Compare: votre branche (ex: `feature/ui`)
@@ -119,7 +119,7 @@ git pull origin main
 - Demandez une relecture; appliquez les retours si besoin
 - Quand c’est validé: merge vers `main`, puis supprimez la branche
 
-6) Conseils
+## 6️⃣ Conseils
 - Préfixer les messages: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 
 ---
