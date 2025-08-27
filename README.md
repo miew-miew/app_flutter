@@ -2,6 +2,16 @@
 
 Application Flutter de suivi d'habitudes.
 
+## Sommaire
+
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Lancement](#lancement)
+- [Commandes utiles](#commandes-utiles)
+- [Dépannage](#dépannage)
+- [Structure du projet](#structure-du-projet)
+- [Contribuer (branches et Pull Requests)](#contribuer-branches-et-pull-requests)
+
 ## Prérequis
 
 - Flutter SDK installé (version recommandée: stable actuelle)
