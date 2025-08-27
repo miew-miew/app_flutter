@@ -294,8 +294,9 @@ class HabitService {
               l.status == HabitStatus.done,
         )
         .fold<int>(0, (sum, l) => sum + ((l.durationMinutes ?? 0) * 60));
-    // Pour la journée courante, ajouter le timer actif si présent
-    if (_dayKey(DateTime.now()).isAtSameMomentAs(key) &&
+    // Pour la journée courante uniquement, ajouter le timer actif si présent
+    final DateTime todayKey = _dayKey(DateTime.now());
+    if (_dayKey(date).isAtSameMomentAs(todayKey) &&
         _activeTimers.containsKey(habitId)) {
       final DateTime start = _activeTimers[habitId]!;
       final int runningSeconds = DateTime.now().difference(start).inSeconds;
@@ -382,12 +383,15 @@ class HabitService {
       final DateTime start = _activeTimers.remove(habitId)!;
       final int minutes = now.difference(start).inMinutes;
 
+      // Utiliser la date de début du timer, pas la date d'aujourd'hui
+      final DateTime timerDate = _dayKey(start);
+
       // Supprimer le log "running" s'il existe
       final runningLogs = box.values.where(
         (l) =>
             l.habitId == habitId &&
             l.status == HabitStatus.running &&
-            _dayKey(l.date).isAtSameMomentAs(today),
+            _dayKey(l.date).isAtSameMomentAs(timerDate),
       );
       for (final log in runningLogs) {
         await box.delete(log.id);
@@ -397,10 +401,10 @@ class HabitService {
         final HabitLog log = HabitLog(
           id: _generateLogId(),
           habitId: habitId,
-          date: today,
+          date: timerDate, // Utiliser la date de début du timer
           eventTime: now,
           status: HabitStatus.done,
-          countIndex: _countToday(box, habitId, today) + 1,
+          countIndex: _countToday(box, habitId, timerDate) + 1,
           durationMinutes: minutes,
           note: null,
         );

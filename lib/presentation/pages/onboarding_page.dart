@@ -30,6 +30,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       // Sauvegarder le nom dans SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_name', _nameController.text.trim());
+      await prefs.setBool('onboarding_completed', true);
 
       // Rediriger vers la HomePage
       if (mounted) {

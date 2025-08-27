@@ -341,6 +341,10 @@ class _HomePageState extends State<HomePage> {
       future: _habitsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          // Afficher la dernière liste connue pour éviter le "glitch"
+          if (_lastHabits != null && _lastHabits!.isNotEmpty) {
+            return _buildHabitsListView(_lastHabits!);
+          }
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -349,23 +353,36 @@ class _HomePageState extends State<HomePage> {
         }
 
         final habits = snapshot.data ?? [];
+        // Mémoriser pour les prochaines transitions
+        _lastHabits = habits;
         if (habits.isEmpty) {
           return _buildEmptyState();
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: habits.length,
-          itemBuilder: (context, index) {
-            final habit = habits[index];
-            return _buildHabitCard(habit, index);
-          },
-        );
+        return _buildHabitsListView(habits);
       },
     );
   }
 
   Future<List<Habit>>? _habitsFuture;
+  List<Habit>? _lastHabits;
+
+  Widget _buildHabitsListView(List<Habit> habits) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: ListView.builder(
+        key: ValueKey('${_selectedDate.toIso8601String()}_${habits.length}'),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: habits.length,
+        itemBuilder: (context, index) {
+          final habit = habits[index];
+          return _buildHabitCard(habit, index);
+        },
+      ),
+    );
+  }
 
   Widget _buildHabitCard(Habit habit, int index) {
     // Emoji réel de l'habitude
@@ -725,10 +742,30 @@ class _HomePageState extends State<HomePage> {
         );
       case TrackingType.task:
         final done = await svc.isTaskCompletedOnDate(habit.id, _selectedDate);
+        final isToday = _isSelected(DateTime.now());
+        final isPast = _selectedDate.isBefore(
+          DateTime.now().copyWith(
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+            microsecond: 0,
+          ),
+        );
+
+        String subtitle;
+        if (done) {
+          subtitle = 'Complété';
+        } else if (isPast) {
+          subtitle = 'Manqué';
+        } else {
+          subtitle = 'Non complété';
+        }
+
         return _CardData(
-          subtitle: done ? 'Complété' : 'Non complété',
+          subtitle: subtitle,
           onTap: () async {
-            if (!done && _isSelected(DateTime.now())) {
+            if (!done && isToday) {
               await svc.completeTaskToday(habit);
               if (mounted) setState(() {});
             }
@@ -736,11 +773,34 @@ class _HomePageState extends State<HomePage> {
         );
       case null:
         // Fallback pour les anciennes habitudes sans trackingType
+        final done = await svc.isTaskCompletedOnDate(habit.id, _selectedDate);
+        final isToday = _isSelected(DateTime.now());
+        final isPast = _selectedDate.isBefore(
+          DateTime.now().copyWith(
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+            microsecond: 0,
+          ),
+        );
+
+        String subtitle;
+        if (done) {
+          subtitle = 'Complété';
+        } else if (isPast) {
+          subtitle = 'Manqué';
+        } else {
+          subtitle = 'Non complété';
+        }
+
         return _CardData(
-          subtitle: 'Non complété',
+          subtitle: subtitle,
           onTap: () async {
-            await svc.completeTaskToday(habit);
-            if (mounted) setState(() {});
+            if (!done && isToday) {
+              await svc.completeTaskToday(habit);
+              if (mounted) setState(() {});
+            }
           },
         );
     }
@@ -760,7 +820,19 @@ class _HomePageState extends State<HomePage> {
           onTap: () {},
         );
       case TrackingType.task:
-        return _CardData(subtitle: 'Non complété', onTap: () {});
+        final isPast = _selectedDate.isBefore(
+          DateTime.now().copyWith(
+            hour: 0,
+            minute: 0,
+            second: 0,
+            millisecond: 0,
+            microsecond: 0,
+          ),
+        );
+        return _CardData(
+          subtitle: isPast ? 'Manqué' : 'Non complété',
+          onTap: () {},
+        );
       case null:
         // Fallback pour les anciennes habitudes sans trackingType
         return _CardData(subtitle: 'Non complété', onTap: () {});

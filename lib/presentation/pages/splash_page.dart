@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -42,9 +43,15 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     _fadeController.forward();
     _slideController.forward();
 
-    // Rediriger vers OnboardingPage après 3 secondes
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
+    // Redirection conditionnelle après 3 secondes
+    Future.delayed(const Duration(seconds: 3), () async {
+      if (!mounted) return;
+      final prefs = await SharedPreferences.getInstance();
+      if (!mounted) return; // recheck after async gap
+      final completed = prefs.getBool('onboarding_completed') ?? false;
+      if (completed) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else {
         Navigator.of(context).pushReplacementNamed('/onboarding');
       }
     });
