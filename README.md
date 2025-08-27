@@ -83,7 +83,7 @@ flutter clean && flutter pub get
 
 ## Structure du projet
 
-Dans le fichier PROJECT_STRUCTURE.md
+Voir le fichier [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) pour plus de détails.
 
 ## Contribuer (branches et Pull Requests)
 
