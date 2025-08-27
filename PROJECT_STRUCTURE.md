@@ -1,3 +1,4 @@
+```
 app_flutter/
 ├── lib/
 │   ├── main.dart                   # Point d'entrée de l'application
@@ -16,8 +17,11 @@ app_flutter/
 │   ├── presentation/
 │   │   ├── pages/                  # Écrans
 │   │   ├── widgets/                # Composants réutilisables
-├── assets/
-├── test/
-├── pubspec.yaml
-├── README.md
-└── PROJECT_STRUCTURE.md
+│   │   ├── controllers/            # Contrôleurs (ex : GetX, Riverpod)
+│   │   └── viewmodels/             # ViewModels (Provider, Bloc, etc.)
+├── assets/                        # Ressources statiques (images, fonts, etc.)
+├── test/                          # Tests unitaires et d'intégration
+├── pubspec.yaml                   # Configuration des dépendances et métadonnées
+├── README.md                      # Aperçu et instructions du projet
+└── PROJECT_STRUCTURE.md           # Documentation de la structure du projet
+```
