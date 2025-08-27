@@ -17,8 +17,6 @@ app_flutter/
 │   ├── presentation/
 │   │   ├── pages/                  # Écrans
 │   │   ├── widgets/                # Composants réutilisables
-│   │   ├── controllers/            # Contrôleurs (ex : GetX, Riverpod)
-│   │   └── viewmodels/             # ViewModels (Provider, Bloc, etc.)
 ├── assets/                        # Ressources statiques (images, fonts, etc.)
 ├── test/                          # Tests unitaires et d'intégration
 ├── pubspec.yaml                   # Configuration des dépendances et métadonnées
