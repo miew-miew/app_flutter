@@ -263,7 +263,8 @@ class _EditHabitPageState extends State<EditHabitPage> {
       await habitService.updateHabitSchedule(updatedSchedule);
 
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      // Retourner la nouvelle date de début pour repositionner la HomePage
+      Navigator.of(context).pop(_startDate);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Habitude modifiée')));
@@ -280,7 +281,19 @@ class _EditHabitPageState extends State<EditHabitPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Modifier l\'habitude')),
+      appBar: AppBar(
+        title: const Text('Modifier l\'habitude'),
+        actions: [
+          TextButton(
+            onPressed: _isSaving
+                ? null
+                : () {
+                    Navigator.of(context).pop(false);
+                  },
+            child: const Text('Annuler'),
+          ),
+        ],
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(

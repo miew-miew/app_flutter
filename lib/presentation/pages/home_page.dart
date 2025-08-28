@@ -585,7 +585,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         context,
       ).pushNamed('/edit-habit', arguments: {'habitId': habit.id});
       if (!mounted) return;
-      if (updated == true) {
+      if (updated is DateTime) {
+        // Repositionner sur la nouvelle date de début
+        final svc = Provider.of<HabitService>(context, listen: false);
+        setState(() {
+          _selectedDate = updated;
+          _generateWeekDates(anchor: updated);
+          _habitsFuture = svc.getHabitsForDate(_selectedDate);
+        });
+      } else if (updated == true) {
         final svc = Provider.of<HabitService>(context, listen: false);
         setState(() {
           _habitsFuture = svc.getHabitsForDate(_selectedDate);
