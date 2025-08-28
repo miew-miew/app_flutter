@@ -5,13 +5,33 @@ Application Flutter de suivi d'habitudes.
 ## Sommaire
 
 - [Prérequis](#prérequis)
-- [Installation](#installation)
+
+<details>
+  <summary><strong>Installation</strong></summary>
+
+- [Étape 1 — Cloner le dépôt](#étape-1--cloner-le-dépôt)
+- [Étape 2 — Installer les dépendances](#étape-2--installer-les-dépendances)
+- [Étape 3 — Générer les fichiers (optionnel)](#étape-3--générer-les-fichiers-optionnel)
+
+</details>
+
 - [Lancement](#lancement)
 - [Commandes utiles](#commandes-utiles)
 - [Dépannage](#dépannage)
 - [Structure du projet](#structure-du-projet)
-- [Contribuer (branches et Pull Requests)](#contribuer-branches-et-pull-requests)
-- [Gérer `git pull` avec modifications locales](#gérer-git-pull-avec-modifications-locales)
+
+<details>
+  <summary><strong>Contribuer (branches et Pull Requests)</strong></summary>
+
+- [Étape 1 — Mettre à jour `main`](#étape-1--mettre-à-jour-main)
+- [Étape 2 — Créer et basculer sur une branche de travail](#étape-2--créer-et-basculer-sur-une-branche-de-travail)
+- [Étape 3 — Commiter et pousser vos changements](#étape-3--commiter-et-pousser-vos-changements)
+- [Étape 4 — Synchroniser votre branche avec `main`](#étape-4--synchroniser-votre-branche-avec-main)
+- [Étape 5 — Ouvrir une Pull Request (PR)](#étape-5--ouvrir-une-pull-request-pr)
+- [Étape 6 — Conseils](#étape-6--conseils)
+- [Annexe — Gérer `git pull` avec modifications locales](#annexe--gérer-git-pull-avec-modifications-locales)
+
+</details>
 
 ## Prérequis
 
@@ -26,20 +46,20 @@ flutter doctor
 
 ## Installation
 
-1) Cloner le dépôt
+### Étape 1 — Cloner le dépôt
 
 ```bash
 git clone https://github.com/miew-miew/app_flutter.git
 cd app_flutter
 ```
 
-2) Récupérer les dépendances
+### Étape 2 — Installer les dépendances
 
 ```bash
 flutter pub get
 ```
 
-3) (Optionnel) Générer les fichiers si nécessaire
+### Étape 3 — Générer les fichiers (optionnel)
 
 Le projet utilise Hive (adapters déjà générés et versionnés). Si vous ajoutez des modèles Hive, générez les adapters:
 
@@ -55,7 +75,9 @@ Lancement sur Windows (recommandé)
 flutter run -d chrome
 
 # Windows
-flutter run -d windows 
+# (si nécessaire la première fois)
+flutter config --enable-windows-desktop
+flutter run -d windows
 
 # macOS / Linux
 flutter run -d macos
@@ -64,7 +86,7 @@ flutter run -d linux
 
 ## Commandes utiles
 
-- Analyser le code:
+- Analyse du code:
 
 ```bash
 flutter analyze
@@ -92,11 +114,20 @@ Pour contribuer sans impacter directement la branche `main`, utilisez une branch
 
 ---
 
-## Gérer `git pull` avec modifications locales
+### Étape 1 — Mettre à jour `main`
+
+Avant de créer une branche, récupérez les dernières modifications de `main` :
+
+```bash
+git checkout main
+git pull origin main
+```
+
+### Annexe — Gérer `git pull` avec modifications locales
 
 Quand `git pull` bloque parce que des fichiers modifiés seraient écrasés, choisissez une des options suivantes.
 
-### Avant `git pull`
+#### Avant `git pull`
 
 - Garder mes changements (et les enregistrer)
 
@@ -121,7 +152,7 @@ git reset --hard
 git pull origin main
 ```
 
-### Après `git pull` (ex: après `stash pop`)
+#### Après `git pull` (ex: après `stash pop`)
 
 S’il reste des fichiers modifiés:
 
@@ -138,36 +169,28 @@ git commit -m "fix: maj après pull"
 git restore <fichier>
 ```
 
-### 1️⃣ Mettre à jour `main`
 
-Avant de créer une branche, récupérez les dernières modifications de `main` :
-
-```bash
-git checkout main
-git pull origin main
-```
-
-### 2️⃣ Créer et basculer sur une branche de travail
+### Étape 2 — Créer et basculer sur une branche de travail
 
 ```bash
-git checkout -b feature/ui
+git checkout -b feature/ui-home
 ```
 
-### 3️⃣ Commiter et pousser vos changements
+### Étape 3 — Commiter et pousser vos changements
 
 ```bash
 git add .
-git commit -m "feat: description courte"
-git push -u origin feature/ui
+git commit -m "feat(ui): description courte"
+git push -u origin feature/ui-home
 ```
 
-### 4️⃣ Synchroniser votre branche avec main
+### Étape 4 — Synchroniser votre branche avec `main`
 
 ```bash
 git pull origin main
 ```
 
-### 5️⃣ Ouvrir une Pull Request (PR)
+### Étape 5 — Ouvrir une Pull Request (PR)
 
 - Sur GitHub: “Compare & pull request” (ou “New pull request”)
 - Base: `main`, Compare: votre branche (ex: `feature/ui`)
@@ -176,7 +199,7 @@ git pull origin main
 - Demandez une relecture; appliquez les retours si besoin
 - Quand c’est validé: merge vers `main`, puis supprimez la branche
 
-### 6️⃣ Conseils
+### Étape 6 — Conseils
 - Préfixer les messages: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 
 ---

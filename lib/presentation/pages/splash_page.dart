@@ -10,9 +10,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late AnimationController _fadeController;
-  late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -24,24 +22,12 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       vsync: this,
     );
 
-    // Animation de slide pour le personnage Moe
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    );
-
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0.5, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(parent: _slideController, curve: Curves.elasticOut),
-        );
-
     // Démarrer les animations
     _fadeController.forward();
-    _slideController.forward();
 
     // Redirection conditionnelle après 3 secondes
     Future.delayed(const Duration(seconds: 3), () async {
@@ -60,7 +46,6 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _fadeController.dispose();
-    _slideController.dispose();
     super.dispose();
   }
 
@@ -174,104 +159,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
             ),
           ),
 
-          // Personnage Moe en bas à droite avec animation
-          Positioned(
-            bottom: -20,
-            right: -20,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: Stack(
-                children: [
-                  // Personnage Moe (forme de pilule verte)
-                  Container(
-                    width: 120,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(60),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Yeux
-                          CircleAvatar(
-                            radius: 4,
-                            backgroundColor: Colors.black,
-                          ),
-                          SizedBox(width: 8),
-                          CircleAvatar(
-                            radius: 4,
-                            backgroundColor: Colors.black,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Bouche souriante
-                  Positioned(
-                    bottom: 25,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        width: 30,
-                        height: 15,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(15),
-                            bottomRight: Radius.circular(15),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Bulle de dialogue
-                  Positioned(
-                    top: -40,
-                    left: 20,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 15,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5DC), // Couleur crème
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: const Text(
-                        'IT\'S MORE FUN\nTOGETHER!',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          // Personnage Moe supprimé
         ],
       ),
     );
