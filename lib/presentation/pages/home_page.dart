@@ -146,22 +146,41 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   String _getDayAbbreviation(int weekday) {
     switch (weekday) {
       case DateTime.monday:
-        return 'MO';
+        return 'LU';
       case DateTime.tuesday:
-        return 'TU';
+        return 'MA';
       case DateTime.wednesday:
-        return 'WE';
+        return 'ME';
       case DateTime.thursday:
-        return 'TH';
+        return 'JE';
       case DateTime.friday:
-        return 'FR';
+        return 'VE';
       case DateTime.saturday:
         return 'SA';
       case DateTime.sunday:
-        return 'SU';
+        return 'DI';
       default:
         return '';
     }
+  }
+
+  String _formatMonthYear(DateTime date) {
+    const monthsFr = [
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre',
+    ];
+    final monthName = monthsFr[date.month - 1];
+    return '$monthName ${date.year}';
   }
 
   bool _isSelected(DateTime date) {
@@ -200,30 +219,62 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Widget _buildHeader() {
+    final bool isTodaySelected = _isSelected(DateTime.now());
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Text(
-            'Heyy, ',
-            style: const TextStyle(fontSize: 24, color: Colors.black87),
-          ),
-          Text(
-            _userName,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+          Expanded(
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Heyy, ',
+                    style: TextStyle(fontSize: 24, color: Colors.black87),
+                  ),
+                  TextSpan(
+                    text: _userName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' !',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const Text(
-            ' !',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+          if (!isTodaySelected) const SizedBox(width: 12),
+          if (!isTodaySelected)
+            FittedBox(
+              child: GestureDetector(
+                onTap: _goToToday,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.shade300),
+                  ),
+                  child: const Text(
+                    "Revenir à aujourd'hui",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -243,14 +294,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 onPressed: _previousWeek,
                 icon: const Icon(Icons.chevron_left, color: Colors.green),
               ),
-              TextButton(
-                onPressed: _goToToday,
-                child: const Text(
-                  'Aujourd\'hui',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                  ),
+              Text(
+                _formatMonthYear(_selectedDate),
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               IconButton(
