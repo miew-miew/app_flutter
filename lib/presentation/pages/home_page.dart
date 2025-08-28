@@ -183,6 +183,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return '$monthName ${date.year}';
   }
 
+  Future<void> _pickCalendarDate() async {
+    final now = DateTime.now();
+    final initial = _selectedDate;
+    final res = await showDatePicker(
+      context: context,
+      firstDate: DateTime(now.year - 10),
+      lastDate: DateTime(now.year + 10),
+      initialDate: initial,
+    );
+    if (res != null) {
+      setState(() {
+        _selectedDate = res;
+        _generateWeekDates(anchor: res);
+        final svc = Provider.of<HabitService>(context, listen: false);
+        _habitsFuture = svc.getHabitsForDate(_selectedDate);
+      });
+    }
+  }
+
   bool _isSelected(DateTime date) {
     return date.year == _selectedDate.year &&
         date.month == _selectedDate.month &&
@@ -294,11 +313,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 onPressed: _previousWeek,
                 icon: const Icon(Icons.chevron_left, color: Colors.green),
               ),
-              Text(
-                _formatMonthYear(_selectedDate),
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.w700,
+              GestureDetector(
+                onTap: _pickCalendarDate,
+                child: Text(
+                  _formatMonthYear(_selectedDate),
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               IconButton(
