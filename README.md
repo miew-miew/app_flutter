@@ -25,20 +25,20 @@ flutter doctor
 
 ## Installation
 
-1) Cloner le dépôt
+### Étape 1 — Cloner le dépôt
 
 ```bash
 git clone https://github.com/miew-miew/app_flutter.git
 cd app_flutter
 ```
 
-2) Récupérer les dépendances
+### Étape 2 — Installer les dépendances
 
 ```bash
 flutter pub get
 ```
 
-3) (Optionnel) Générer les fichiers si nécessaire
+### Étape 3 — Générer les fichiers (optionnel)
 
 Le projet utilise Hive (adapters déjà générés et versionnés). Si vous ajoutez des modèles Hive, générez les adapters:
 
@@ -54,7 +54,9 @@ Lancement sur Windows (recommandé)
 flutter run -d chrome
 
 # Windows
-flutter run -d windows 
+# (si nécessaire la première fois)
+flutter config --enable-windows-desktop
+flutter run -d windows
 
 # macOS / Linux
 flutter run -d macos
@@ -63,7 +65,7 @@ flutter run -d linux
 
 ## Commandes utiles
 
-- Analyser le code:
+- Analyse du code:
 
 ```bash
 flutter analyze
@@ -91,7 +93,7 @@ Pour contribuer sans impacter directement la branche `main`, utilisez une branch
 
 ---
 
-### 1️⃣ Mettre à jour `main`
+### Étape 1 — Mettre à jour `main`
 
 Avant de créer une branche, récupérez les dernières modifications de `main` :
 
@@ -100,27 +102,74 @@ git checkout main
 git pull origin main
 ```
 
-### 2️⃣ Créer et basculer sur une branche de travail
+### Annexe — Gérer `git pull` avec modifications locales
 
-```bash
-git checkout -b feature/ui
-```
+Quand `git pull` bloque parce que des fichiers modifiés seraient écrasés, choisissez une des options suivantes.
 
-### 3️⃣ Commiter et pousser vos changements
+#### Avant `git pull`
+
+- Garder mes changements (et les enregistrer)
 
 ```bash
 git add .
-git commit -m "feat: description courte"
-git push -u origin feature/ui
+git commit -m "wip"
+git pull origin main
 ```
 
-### 4️⃣ Synchroniser votre branche avec main
+- Garder sans commit (mettre de côté puis récupérer)
+
+```bash
+git stash
+git pull origin main
+git stash pop
+```
+
+- Ne pas garder (tout jeter)
+
+```bash
+git reset --hard
+git pull origin main
+```
+
+#### Après `git pull` (ex: après `stash pop`)
+
+S’il reste des fichiers modifiés:
+
+- Je garde mes modifs locales
+
+```bash
+git add <fichier>
+git commit -m "fix: maj après pull"
+```
+
+- Je garde uniquement la version distante (GitHub)
+
+```bash
+git restore <fichier>
+```
+
+
+### Étape 2 — Créer et basculer sur une branche de travail
+
+```bash
+git checkout -b feature/ui-home
+```
+
+### Étape 3 — Commiter et pousser vos changements
+
+```bash
+git add .
+git commit -m "feat(ui): description courte"
+git push -u origin feature/ui-home
+```
+
+### Étape 4 — Synchroniser votre branche avec `main`
 
 ```bash
 git pull origin main
 ```
 
-### 5️⃣ Ouvrir une Pull Request (PR)
+### Étape 5 — Ouvrir une Pull Request (PR)
 
 - Sur GitHub: “Compare & pull request” (ou “New pull request”)
 - Base: `main`, Compare: votre branche (ex: `feature/ui`)
@@ -129,7 +178,7 @@ git pull origin main
 - Demandez une relecture; appliquez les retours si besoin
 - Quand c’est validé: merge vers `main`, puis supprimez la branche
 
-### 6️⃣ Conseils
+### Étape 6 — Conseils
 - Préfixer les messages: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`.
 
 ---

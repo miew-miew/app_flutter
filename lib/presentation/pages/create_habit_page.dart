@@ -253,7 +253,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<TrackingType>(
-                  initialValue: _trackingType,
+                  value: _trackingType,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),
@@ -346,7 +346,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  initialValue: _frequency,
+                  value: _frequency,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),

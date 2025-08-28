@@ -308,7 +308,7 @@ class _EditHabitPageState extends State<EditHabitPage> {
                       const Text('Suivi', style: TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<TrackingType>(
-                        initialValue: _trackingType,
+                        value: _trackingType,
                         decoration: const InputDecoration(border: OutlineInputBorder()),
                         items: const [
                           DropdownMenuItem(value: TrackingType.task, child: Text('Tâche simple')),
@@ -373,7 +373,7 @@ class _EditHabitPageState extends State<EditHabitPage> {
                       const Text('Fréquence', style: TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        initialValue: _frequency,
+                        value: _frequency,
                         decoration: const InputDecoration(border: OutlineInputBorder()),
                         items: const [
                           DropdownMenuItem(value: 'daily', child: Text('Quotidienne')),

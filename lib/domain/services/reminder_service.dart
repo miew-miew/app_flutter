@@ -14,7 +14,8 @@ class ReminderEvent {
 /// Simple in-app reminder service for desktop/web: checks every minute and emits events.
 class ReminderService {
   final HabitRepository _habitRepository;
-  final StreamController<ReminderEvent> _controller = StreamController.broadcast();
+  final StreamController<ReminderEvent> _controller =
+      StreamController.broadcast();
   Timer? _timer;
   // Avoid duplicate events within the same minute per habit
   final Set<String> _emittedKeys = <String>{};
@@ -33,23 +34,37 @@ class ReminderService {
 
   Future<void> _checkNow() async {
     final DateTime now = DateTime.now();
-    final DateTime minuteKey = DateTime(now.year, now.month, now.day, now.hour, now.minute);
+    final DateTime minuteKey = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
     final String hh = now.hour.toString().padLeft(2, '0');
     final String mm = now.minute.toString().padLeft(2, '0');
     final String hhmm = '$hh:$mm';
 
     final List<Habit> habits = await _habitRepository.getAllHabits();
     if (habits.isEmpty) return;
-    final List<HabitSchedule> schedules = await _habitRepository.getAllSchedules();
-    final Map<String, HabitSchedule> scheduleById = {for (final s in schedules) s.id: s};
+    final List<HabitSchedule> schedules = await _habitRepository
+        .getAllSchedules();
+    final Map<String, HabitSchedule> scheduleById = {
+      for (final s in schedules) s.id: s,
+    };
 
     final int weekday = now.weekday; // 1=lundi..7=dimanche
 
-    // debug logging removed
+    // no debug prints in production
 
     for (final habit in habits.where((h) => !h.isArchived)) {
       final HabitSchedule? schedule = scheduleById[habit.scheduleId];
-      final bool scheduledToday = _isScheduledToday(schedule, habit, now, weekday);
+      final bool scheduledToday = _isScheduledToday(
+        schedule,
+        habit,
+        now,
+        weekday,
+      );
       if (!scheduledToday) continue;
 
       // Determine candidate reminder times: schedule.times or habit.reminderTime
@@ -58,7 +73,9 @@ class ReminderService {
       if (times != null && times.isNotEmpty) {
         candidateTimes.addAll(times);
       }
-      if ((times == null || times.isEmpty) && (habit.reminderTime != null && habit.reminderTime!.trim().isNotEmpty)) {
+      if ((times == null || times.isEmpty) &&
+          (habit.reminderTime != null &&
+              habit.reminderTime!.trim().isNotEmpty)) {
         candidateTimes.add(habit.reminderTime!.trim());
       }
       if (candidateTimes.isEmpty) continue;
@@ -68,6 +85,7 @@ class ReminderService {
       final String key = '${habit.id}_${minuteKey.toIso8601String()}';
       if (_emittedKeys.contains(key)) continue;
       _emittedKeys.add(key);
+      // emit event
       _controller.add(ReminderEvent(habit: habit, scheduledFor: minuteKey));
     }
 
@@ -104,7 +122,9 @@ class ReminderService {
         return days.contains(weekday);
       case ScheduleType.intervalN:
         if (schedule.intervalN == null) return false;
-        final int daysSinceStart = date.difference(_dayKey(schedule.startDate)).inDays;
+        final int daysSinceStart = date
+            .difference(_dayKey(schedule.startDate))
+            .inDays;
         return daysSinceStart % schedule.intervalN! == 0;
       case ScheduleType.specificDates:
         final List<DateTime>? specific = schedule.specificDates;
@@ -132,5 +152,3 @@ class ReminderService {
     _controller.close();
   }
 }
-
-

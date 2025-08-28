@@ -80,9 +80,7 @@ class _HomePageState extends State<HomePage> {
       if (!mounted) return;
       // Jouer un petit son système (simple, sans dépendance)
       SystemSound.play(SystemSoundType.alert);
-      final snackBar = SnackBar(
-        content: Text('Rappel: ${event.habit.title}')
-      );
+      final snackBar = SnackBar(content: Text('Rappel: ${event.habit.title}'));
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     });
   }
@@ -619,6 +617,33 @@ class _HomePageState extends State<HomePage> {
                 child: const Icon(Icons.check, color: Colors.white, size: 20),
               );
             }
+            // Jour passé et non complété => manqué
+            final bool isPast =
+                DateTime(
+                  _selectedDate.year,
+                  _selectedDate.month,
+                  _selectedDate.day,
+                ).isBefore(
+                  DateTime.now().copyWith(
+                    hour: 0,
+                    minute: 0,
+                    second: 0,
+                    millisecond: 0,
+                    microsecond: 0,
+                  ),
+                );
+            if (isPast) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.red.shade300, width: 2),
+                ),
+                child: Icon(Icons.close, color: Colors.red.shade400, size: 18),
+              );
+            }
             return Container(
               width: 36,
               height: 36,
@@ -679,6 +704,34 @@ class _HomePageState extends State<HomePage> {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.check, color: Colors.white, size: 20),
+              );
+            }
+
+            // Jour passé et non complété => manqué
+            final bool isPast =
+                DateTime(
+                  _selectedDate.year,
+                  _selectedDate.month,
+                  _selectedDate.day,
+                ).isBefore(
+                  DateTime.now().copyWith(
+                    hour: 0,
+                    minute: 0,
+                    second: 0,
+                    millisecond: 0,
+                    microsecond: 0,
+                  ),
+                );
+            if (isPast) {
+              return Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.red.shade300, width: 2),
+                ),
+                child: Icon(Icons.close, color: Colors.red.shade400, size: 18),
               );
             }
 
@@ -808,8 +861,24 @@ class _HomePageState extends State<HomePage> {
         );
         final target = habit.targetPerDay <= 1 ? 1 : habit.targetPerDay;
         final bool done = count >= target;
+        final bool isPast =
+            DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+            ).isBefore(
+              DateTime.now().copyWith(
+                hour: 0,
+                minute: 0,
+                second: 0,
+                millisecond: 0,
+                microsecond: 0,
+              ),
+            );
         return _CardData(
-          subtitle: done ? 'Complété' : '$count/$target fois',
+          subtitle: done
+              ? 'Complété'
+              : (isPast ? 'Manqué' : '$count/$target fois'),
           onTap: () async {
             // Incrémente seulement si on est sur aujourd'hui
             if (_isSelected(DateTime.now())) {
@@ -825,10 +894,26 @@ class _HomePageState extends State<HomePage> {
         );
         final targetSeconds = habit.targetDurationSeconds ?? 0;
         final bool done = targetSeconds > 0 && seconds >= targetSeconds;
+        final bool isPast =
+            DateTime(
+              _selectedDate.year,
+              _selectedDate.month,
+              _selectedDate.day,
+            ).isBefore(
+              DateTime.now().copyWith(
+                hour: 0,
+                minute: 0,
+                second: 0,
+                millisecond: 0,
+                microsecond: 0,
+              ),
+            );
         return _CardData(
           subtitle: done
               ? 'Complété'
-              : '${_formatHMS(seconds)}/${_formatHMS(targetSeconds)}',
+              : (isPast
+                    ? 'Manqué'
+                    : '${_formatHMS(seconds)}/${_formatHMS(targetSeconds)}'),
           onTap: () async {
             if (_isSelected(DateTime.now())) {
               await svc.toggleTimeTracking(habit);
