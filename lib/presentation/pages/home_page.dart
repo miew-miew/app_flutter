@@ -414,66 +414,66 @@ class _HomePageState extends State<HomePage> {
         return GestureDetector(
           onLongPress: () => _showHabitActions(habit),
           child: Container(
-          margin: const EdgeInsets.only(bottom: 15),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // Icône de l'habitude
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(25),
+            margin: const EdgeInsets.only(bottom: 15),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-                child: Center(
-                  child: Text(icon, style: const TextStyle(fontSize: 24)),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Icône de l'habitude
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Center(
+                    child: Text(icon, style: const TextStyle(fontSize: 24)),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 15),
+                const SizedBox(width: 15),
 
-              // Informations de l'habitude
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      habit.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                // Informations de l'habitude
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        habit.title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      card.subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
+                      const SizedBox(height: 5),
+                      Text(
+                        card.subtitle,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-              GestureDetector(
-                onTap: card.onTap,
-                child: _buildTrailingAction(habit),
-              ),
-            ],
-          ),
+                GestureDetector(
+                  onTap: card.onTap,
+                  child: _buildTrailingAction(habit),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -517,11 +517,10 @@ class _HomePageState extends State<HomePage> {
 
     if (!mounted || action == null) return;
     if (action == 'edit') {
-      final updated = await Navigator.of(context).pushNamed(
-        '/edit-habit',
-        arguments: {'habitId': habit.id},
-      );
-      if (!context.mounted) return;
+      final updated = await Navigator.of(
+        context,
+      ).pushNamed('/edit-habit', arguments: {'habitId': habit.id});
+      if (!mounted) return;
       if (updated == true) {
         final svc = Provider.of<HabitService>(context, listen: false);
         setState(() {
@@ -532,7 +531,6 @@ class _HomePageState extends State<HomePage> {
       _confirmDelete(habit);
     }
   }
-
 
   void _confirmDelete(Habit habit) {
     showDialog(
@@ -547,7 +545,10 @@ class _HomePageState extends State<HomePage> {
               child: const Text('Annuler'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () async {
                 final svc = Provider.of<HabitService>(context, listen: false);
                 await svc.deleteHabit(habit.id);
@@ -557,7 +558,10 @@ class _HomePageState extends State<HomePage> {
                 if (!context.mounted) return;
                 setState(() {});
               },
-              child: const Text('Supprimer'),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );

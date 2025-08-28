@@ -22,9 +22,9 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
 
   // Champs conditionnels
   final TextEditingController _quantityController = TextEditingController(
-    text: '8',
+    text: '1',
   );
-  Duration _timeDuration = const Duration(minutes: 25);
+  Duration _timeDuration = Duration.zero;
 
   String _frequency = 'daily'; // daily | custom
   final Set<int> _weeklyDays = {1, 2, 3, 4, 5, 6, 7}; // L..D par défaut
@@ -287,7 +287,6 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: 'ex: 8',
                     ),
                     validator: (v) {
                       if (_trackingType != TrackingType.quantity) return null;
@@ -423,6 +422,12 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ),
                 const SizedBox(height: 16),
 
+                const Text(
+                  'Se termine le',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+
                 Row(
                   children: [
                     Switch(
@@ -434,7 +439,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                if (!_noEnd)
+                if (!_noEnd) ...[
                   InkWell(
                     onTap: () => _pickDate(isStart: false),
                     child: InputDecorator(
@@ -458,6 +463,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                       ),
                     ),
                   ),
+                ],
 
                 const SizedBox(height: 24),
                 SizedBox(

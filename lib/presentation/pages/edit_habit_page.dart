@@ -24,17 +24,17 @@ class _EditHabitPageState extends State<EditHabitPage> {
   TrackingType _trackingType = TrackingType.task;
 
   // Champs conditionnels
-  final TextEditingController _quantityController = TextEditingController(text: '1');
-  Duration _timeDuration = const Duration(minutes: 25);
+  final TextEditingController _quantityController = TextEditingController(
+    text: '1',
+  );
+  Duration _timeDuration = Duration.zero;
 
   String _frequency = 'daily'; // daily | custom
   final Set<int> _weeklyDays = {1, 2, 3, 4, 5, 6, 7};
-
   TimeOfDay? _reminder;
   DateTime? _startDate;
   bool _noEnd = true;
   DateTime? _endDate;
-
   bool _isSaving = false;
   bool _isLoading = true;
   late Habit _habit;
@@ -264,14 +264,14 @@ class _EditHabitPageState extends State<EditHabitPage> {
 
       if (!mounted) return;
       Navigator.of(context).pop(true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Habitude modifiée')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Habitude modifiée')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -291,7 +291,10 @@ class _EditHabitPageState extends State<EditHabitPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Nom', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Nom',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _titleController,
@@ -305,32 +308,51 @@ class _EditHabitPageState extends State<EditHabitPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Suivi', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Suivi',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<TrackingType>(
                         value: _trackingType,
-                        decoration: const InputDecoration(border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
                         items: const [
-                          DropdownMenuItem(value: TrackingType.task, child: Text('Tâche simple')),
-                          DropdownMenuItem(value: TrackingType.quantity, child: Text('Quantité')),
-                          DropdownMenuItem(value: TrackingType.time, child: Text('Temps')),
+                          DropdownMenuItem(
+                            value: TrackingType.task,
+                            child: Text('Tâche simple'),
+                          ),
+                          DropdownMenuItem(
+                            value: TrackingType.quantity,
+                            child: Text('Quantité'),
+                          ),
+                          DropdownMenuItem(
+                            value: TrackingType.time,
+                            child: Text('Temps'),
+                          ),
                         ],
-                        onChanged: (v) => setState(() => _trackingType = v ?? TrackingType.task),
+                        onChanged: (v) => setState(
+                          () => _trackingType = v ?? TrackingType.task,
+                        ),
                       ),
 
                       if (_trackingType == TrackingType.quantity) ...[
                         const SizedBox(height: 12),
-                        const Text('Objectif (fois)', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Objectif (fois)',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _quantityController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
                             border: OutlineInputBorder(),
-                            hintText: 'ex: 8',
                           ),
                           validator: (v) {
-                            if (_trackingType != TrackingType.quantity) return null;
+                            if (_trackingType != TrackingType.quantity)
+                              return null;
                             final n = int.tryParse((v ?? '').trim());
                             if (n == null || n < 1) return '>= 1';
                             return null;
@@ -340,12 +362,17 @@ class _EditHabitPageState extends State<EditHabitPage> {
 
                       if (_trackingType == TrackingType.time) ...[
                         const SizedBox(height: 12),
-                        const Text('Durée', style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Durée',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         const SizedBox(height: 8),
                         InkWell(
                           onTap: _pickDuration,
                           child: InputDecorator(
-                            decoration: const InputDecoration(border: OutlineInputBorder()),
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
                             child: Row(
                               children: [
                                 const Icon(Icons.timer),
@@ -359,7 +386,10 @@ class _EditHabitPageState extends State<EditHabitPage> {
 
                       const SizedBox(height: 16),
 
-                      const Text('Emoji', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Emoji',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _emojiController,
@@ -370,16 +400,28 @@ class _EditHabitPageState extends State<EditHabitPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      const Text('Fréquence', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Fréquence',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         value: _frequency,
-                        decoration: const InputDecoration(border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
                         items: const [
-                          DropdownMenuItem(value: 'daily', child: Text('Quotidienne')),
-                          DropdownMenuItem(value: 'custom', child: Text('Personnalisée')),
+                          DropdownMenuItem(
+                            value: 'daily',
+                            child: Text('Quotidienne'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'custom',
+                            child: Text('Personnalisée'),
+                          ),
                         ],
-                        onChanged: (v) => setState(() => _frequency = v ?? 'daily'),
+                        onChanged: (v) =>
+                            setState(() => _frequency = v ?? 'daily'),
                       ),
                       const SizedBox(height: 8),
 
@@ -387,12 +429,17 @@ class _EditHabitPageState extends State<EditHabitPage> {
 
                       const SizedBox(height: 16),
 
-                      const Text('Rappel', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Rappel',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
                       InkWell(
                         onTap: _pickTime,
                         child: InputDecorator(
-                          decoration: const InputDecoration(border: OutlineInputBorder()),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
                           child: Row(
                             children: [
                               const Icon(Icons.access_time),
@@ -405,12 +452,17 @@ class _EditHabitPageState extends State<EditHabitPage> {
 
                       const SizedBox(height: 16),
 
-                      const Text('Commence le', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Text(
+                        'Commence le',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                       const SizedBox(height: 8),
                       InkWell(
                         onTap: () => _pickDate(isStart: true),
                         child: InputDecorator(
-                          decoration: const InputDecoration(border: OutlineInputBorder()),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
                           child: Row(
                             children: [
                               const Icon(Icons.calendar_month),
@@ -418,13 +470,23 @@ class _EditHabitPageState extends State<EditHabitPage> {
                               Text(
                                 _startDate == null
                                     ? 'Non défini'
-                                    : _startDate!.toLocal().toString().split(' ').first,
+                                    : _startDate!
+                                          .toLocal()
+                                          .toString()
+                                          .split(' ')
+                                          .first,
                               ),
                             ],
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      const Text(
+                        'Se termine le',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
 
                       Row(
                         children: [
@@ -437,11 +499,13 @@ class _EditHabitPageState extends State<EditHabitPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      if (!_noEnd)
+                      if (!_noEnd) ...[
                         InkWell(
                           onTap: () => _pickDate(isStart: false),
                           child: InputDecorator(
-                            decoration: const InputDecoration(border: OutlineInputBorder()),
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
                             child: Row(
                               children: [
                                 const Icon(Icons.event),
@@ -449,12 +513,17 @@ class _EditHabitPageState extends State<EditHabitPage> {
                                 Text(
                                   _endDate == null
                                       ? 'Sélectionner une date'
-                                      : _endDate!.toLocal().toString().split(' ').first,
+                                      : _endDate!
+                                            .toLocal()
+                                            .toString()
+                                            .split(' ')
+                                            .first,
                                 ),
                               ],
                             ),
                           ),
                         ),
+                      ],
 
                       const SizedBox(height: 24),
                       SizedBox(
@@ -529,5 +598,3 @@ class _EditHabitPageState extends State<EditHabitPage> {
     );
   }
 }
-
-
