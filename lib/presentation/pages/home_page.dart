@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/habit.dart';
 import '../../data/models/enums.dart';
 import '../../domain/services/habit_service.dart';
+import '../../domain/services/reminder_service.dart';
 
 class _CardData {
   final String subtitle;
@@ -25,6 +28,7 @@ class _HomePageState extends State<HomePage> {
   late List<DateTime> _weekDates;
   // Ticker pour rafraîchir l'affichage du chrono
   bool _tickActive = false;
+  StreamSubscription<ReminderEvent>? _reminderSub;
 
   @override
   void initState() {
@@ -32,6 +36,7 @@ class _HomePageState extends State<HomePage> {
     _loadUserName();
     _generateWeekDates();
     _startTicker();
+    _subscribeReminders();
   }
 
   void _generateWeekDates() {
@@ -52,6 +57,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _tickActive = false;
+    _reminderSub?.cancel();
     super.dispose();
   }
 
@@ -66,6 +72,19 @@ class _HomePageState extends State<HomePage> {
         setState(() {});
       }
     }
+  }
+
+  void _subscribeReminders() {
+    final svc = Provider.of<ReminderService>(context, listen: false);
+    _reminderSub = svc.events.listen((event) {
+      if (!mounted) return;
+      // Jouer un petit son système (simple, sans dépendance)
+      SystemSound.play(SystemSoundType.alert);
+      final snackBar = SnackBar(
+        content: Text('Rappel: ${event.habit.title}')
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
   }
 
   Future<void> _loadUserName() async {
