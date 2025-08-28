@@ -5,33 +5,12 @@ Application Flutter de suivi d'habitudes.
 ## Sommaire
 
 - [Prérequis](#prérequis)
-
-<details>
-  <summary><strong>Installation</strong></summary>
-
-- [Étape 1 — Cloner le dépôt](#étape-1--cloner-le-dépôt)
-- [Étape 2 — Installer les dépendances](#étape-2--installer-les-dépendances)
-- [Étape 3 — Générer les fichiers (optionnel)](#étape-3--générer-les-fichiers-optionnel)
-
-</details>
-
+- [Installation](#installation)
 - [Lancement](#lancement)
 - [Commandes utiles](#commandes-utiles)
 - [Dépannage](#dépannage)
 - [Structure du projet](#structure-du-projet)
-
-<details>
-  <summary><strong>Contribuer (branches et Pull Requests)</strong></summary>
-
-- [Étape 1 — Mettre à jour `main`](#étape-1--mettre-à-jour-main)
-- [Étape 2 — Créer et basculer sur une branche de travail](#étape-2--créer-et-basculer-sur-une-branche-de-travail)
-- [Étape 3 — Commiter et pousser vos changements](#étape-3--commiter-et-pousser-vos-changements)
-- [Étape 4 — Synchroniser votre branche avec `main`](#étape-4--synchroniser-votre-branche-avec-main)
-- [Étape 5 — Ouvrir une Pull Request (PR)](#étape-5--ouvrir-une-pull-request-pr)
-- [Étape 6 — Conseils](#étape-6--conseils)
-- [Annexe — Gérer `git pull` avec modifications locales](#annexe--gérer-git-pull-avec-modifications-locales)
-
-</details>
+- [Contribuer (branches et Pull Requests)](#contribuer-branches-et-pull-requests)
 
 ## Prérequis
 
