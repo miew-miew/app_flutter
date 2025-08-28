@@ -202,7 +202,8 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      // Retourner la date de début pour que la HomePage puisse se positionner dessus
+      Navigator.of(context).pop(_startDate);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Habitude créée')));

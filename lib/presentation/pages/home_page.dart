@@ -37,25 +37,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     _loadUserName();
-    _generateWeekDates();
+    _generateWeekDates(anchor: _selectedDate);
     _startTicker();
     _subscribeReminders();
     // Redémarre le GIF régulièrement pour simuler une boucle infinie
     _gifController = GifController(vsync: this);
   }
 
-  void _generateWeekDates() {
-    // Trouver le début de la semaine (lundi)
-    final now = DateTime.now();
-    final monday = now.subtract(Duration(days: now.weekday - 1));
+  void _generateWeekDates({DateTime? anchor}) {
+    // Trouver le début de la semaine (lundi) basé sur la date fournie
+    final base = anchor ?? _selectedDate;
+    final monday = base.subtract(Duration(days: base.weekday - 1));
 
     _weekDates = List.generate(7, (index) {
       return monday.add(Duration(days: index));
     });
 
-    // Mettre à jour la date sélectionnée si elle n'est pas dans la semaine actuelle
-    if (!_weekDates.contains(_selectedDate)) {
-      _selectedDate = now;
+    // S'assurer que la date sélectionnée est dans la semaine affichée
+    final inWeek = _weekDates.any((d) =>
+        d.year == _selectedDate.year &&
+        d.month == _selectedDate.month &&
+        d.day == _selectedDate.day);
+    if (!inWeek) {
+      _selectedDate = base;
     }
   }
 
@@ -133,7 +137,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _goToToday() {
     setState(() {
       _selectedDate = DateTime.now();
-      _generateWeekDates();
+      _generateWeekDates(anchor: _selectedDate);
       final svc = Provider.of<HabitService>(context, listen: false);
       _habitsFuture = svc.getHabitsForDate(_selectedDate);
     });
@@ -270,7 +274,48 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildCalendarDay(DateTime date) {
     final isSelected = _isSelected(date);
     final dayAbbr = _getDayAbbreviation(date.weekday);
+    final today = DateTime.now();
+    final isToday = date.year == today.year &&
+        date.month == today.month &&
+        date.day == today.day;
 
+    // Style "capsule" pour le jour sélectionné (y compris si c'est aujourd'hui)
+    if (isSelected) {
+      return GestureDetector(
+        onTap: () => _selectDate(date),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black, // capsule noire
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                dayAbbr,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${date.day}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Sinon, style par défaut: aujourd'hui non sélectionné = cercle vert, autres = cercle contour gris
     return GestureDetector(
       onTap: () => _selectDate(date),
       child: Column(
@@ -281,7 +326,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.green : Colors.black54,
+              color: isToday ? Colors.green : Colors.black54,
             ),
           ),
           const SizedBox(height: 8),
@@ -290,10 +335,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             height: 35,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isSelected ? Colors.green : Colors.transparent,
-              border: isSelected
-                  ? null
-                  : Border.all(color: Colors.grey.shade300),
+              color: isToday ? Colors.green : Colors.transparent,
+              border: Border.all(color: Colors.grey.shade300),
             ),
             child: Center(
               child: Text(
@@ -301,7 +344,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.white : Colors.black87,
+                  color: isToday ? Colors.white : Colors.black87,
                 ),
               ),
             ),
@@ -1039,10 +1082,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   final created = await Navigator.of(
                     context,
                   ).pushNamed('/create-habit');
-                  if (created == true && mounted) {
-                    // Réinitialiser la future pour forcer un nouveau fetch
-                    _habitsFuture = null;
-                    setState(() {});
+                  if (mounted) {
+                    if (created is DateTime) {
+                      // Se repositionner sur le jour de création
+                      setState(() {
+                        _selectedDate = created;
+                        _generateWeekDates(anchor: created);
+                        final svc = Provider.of<HabitService>(context, listen: false);
+                        _habitsFuture = svc.getHabitsForDate(_selectedDate);
+                      });
+                    } else if (created == true) {
+                      // Compat: ancien comportement
+                      _habitsFuture = null;
+                      setState(() {});
+                    }
                   }
                 },
                 child: Container(
