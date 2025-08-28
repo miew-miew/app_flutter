@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gif/gif.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -22,13 +23,15 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   String _userName = '';
   DateTime _selectedDate = DateTime.now();
   late List<DateTime> _weekDates;
   // Ticker pour rafraîchir l'affichage du chrono
   bool _tickActive = false;
   StreamSubscription<ReminderEvent>? _reminderSub;
+  // Contrôleur pour le widget Gif (boucle matérielle)
+  late final GifController _gifController;
 
   @override
   void initState() {
@@ -37,6 +40,8 @@ class _HomePageState extends State<HomePage> {
     _generateWeekDates();
     _startTicker();
     _subscribeReminders();
+    // Redémarre le GIF régulièrement pour simuler une boucle infinie
+    _gifController = GifController(vsync: this);
   }
 
   void _generateWeekDates() {
@@ -58,6 +63,7 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     _tickActive = false;
     _reminderSub?.cancel();
+    _gifController.dispose();
     super.dispose();
   }
 
@@ -306,50 +312,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMotivationalSection() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.green.shade50,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green.shade200),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            "Commence ta journée avec un verre d'eau. Énergie garantie !",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.green,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildCartoonCharacter('🔶', Colors.green),
-              _buildCartoonCharacter('💧', Colors.blue),
-            ],
-          ),
-        ],
+    return Center(
+      child: Gif(
+        controller: _gifController,
+        autostart: Autostart.loop,
+        image: const AssetImage('assets/penguin.gif'),
+        placeholder: (context) => const SizedBox.shrink(),
       ),
     );
   }
 
-  Widget _buildCartoonCharacter(String emoji, Color color) {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color, width: 2),
-      ),
-      child: Center(child: Text(emoji, style: const TextStyle(fontSize: 30))),
-    );
-  }
+  
 
   Widget _buildHabitsList(HabitService habitService) {
     // Future pilotée par _selectedDate, évite clignotement
