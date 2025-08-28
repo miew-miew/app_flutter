@@ -119,6 +119,18 @@ class HabitService {
     return schedule;
   }
 
+  /// Récupère un schedule par son ID
+  Future<HabitSchedule?> getScheduleById(String id) async {
+    final box = Hive.box<HabitSchedule>(Boxes.habitSchedules);
+    return box.get(id);
+  }
+
+  /// Met à jour un schedule existant
+  Future<void> updateHabitSchedule(HabitSchedule schedule) async {
+    final box = Hive.box<HabitSchedule>(Boxes.habitSchedules);
+    await box.put(schedule.id, schedule);
+  }
+
   /// Met à jour une habitude existante
   Future<Habit> updateHabit({
     required String id,
@@ -137,6 +149,25 @@ class HabitService {
       throw ArgumentError('Habitude non trouvée avec l\'ID: $id');
     }
 
+    // Si on change de type de suivi, ajuster les champs cibles
+    int resolvedTargetPerDay = targetPerDay ?? existingHabit.targetPerDay;
+    int? resolvedTargetDurationSeconds =
+        targetDurationSeconds ?? existingHabit.targetDurationSeconds;
+    final TrackingType resolvedTracking = trackingType ?? existingHabit.trackingType ?? TrackingType.task;
+    if (resolvedTracking == TrackingType.quantity) {
+      // s'assurer qu'on a au moins 1
+      resolvedTargetPerDay = (resolvedTargetPerDay <= 0) ? 1 : resolvedTargetPerDay;
+      resolvedTargetDurationSeconds = null;
+    } else if (resolvedTracking == TrackingType.time) {
+      // durée requise, quantité non pertinente
+      resolvedTargetPerDay = existingHabit.targetPerDay; // ne pas forcer à 1 mais quantité n'est pas utilisée
+      // si pas fourni, garder l'existant
+    } else if (resolvedTracking == TrackingType.task) {
+      // tâche simple: quantité par défaut à 1, pas de durée
+      resolvedTargetPerDay = 1;
+      resolvedTargetDurationSeconds = null;
+    }
+
     final updatedHabit = Habit(
       id: existingHabit.id,
       title: title ?? existingHabit.title,
@@ -144,15 +175,14 @@ class HabitService {
       iconEmoji: iconEmoji ?? existingHabit.iconEmoji,
       colorValue: colorValue ?? existingHabit.colorValue,
       scheduleId: scheduleId ?? existingHabit.scheduleId,
-      targetPerDay: targetPerDay ?? existingHabit.targetPerDay,
-      targetDurationSeconds:
-          targetDurationSeconds ?? existingHabit.targetDurationSeconds,
+      targetPerDay: resolvedTargetPerDay,
+      targetDurationSeconds: resolvedTargetDurationSeconds,
       isArchived: existingHabit.isArchived,
       createdAt: existingHabit.createdAt,
       updatedAt: DateTime.now(),
       orderIndex: existingHabit.orderIndex,
       tagIds: tagIds ?? existingHabit.tagIds,
-      trackingType: trackingType ?? existingHabit.trackingType,
+      trackingType: resolvedTracking,
     );
 
     await _habitRepository.updateHabit(updatedHabit);
@@ -166,6 +196,20 @@ class HabitService {
       throw ArgumentError('Habitude non trouvée avec l\'ID: $id');
     }
 
+    // Supprimer les logs liés
+    final Box<HabitLog> logsBox = Boxes.habitLogsBox();
+    final logsToDelete = logsBox.values.where((l) => l.habitId == id).toList();
+    for (final log in logsToDelete) {
+      await logsBox.delete(log.id);
+    }
+
+    // Supprimer le schedule associé si présent
+    final Box<HabitSchedule> schedulesBox = Hive.box<HabitSchedule>(Boxes.habitSchedules);
+    if (schedulesBox.containsKey(habit.scheduleId)) {
+      await schedulesBox.delete(habit.scheduleId);
+    }
+
+    // Supprimer l'habitude
     await _habitRepository.deleteHabit(id);
   }
 
