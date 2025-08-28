@@ -11,6 +11,7 @@ Application Flutter de suivi d'habitudes.
 - [Dépannage](#dépannage)
 - [Structure du projet](#structure-du-projet)
 - [Contribuer (branches et Pull Requests)](#contribuer-branches-et-pull-requests)
+- [Gérer `git pull` avec modifications locales](#gérer-git-pull-avec-modifications-locales)
 
 ## Prérequis
 
@@ -90,6 +91,52 @@ Voir le fichier [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) pour plus de détai
 Pour contribuer sans impacter directement la branche `main`, utilisez une branche dédiée pour chaque fonctionnalité ou correction.
 
 ---
+
+## Gérer `git pull` avec modifications locales
+
+Quand `git pull` bloque parce que des fichiers modifiés seraient écrasés, choisissez une des options suivantes.
+
+### Avant `git pull`
+
+- Garder mes changements (et les enregistrer)
+
+```bash
+git add .
+git commit -m "wip"
+git pull origin main
+```
+
+- Garder sans commit (mettre de côté puis récupérer)
+
+```bash
+git stash
+git pull origin main
+git stash pop
+```
+
+- Ne pas garder (tout jeter)
+
+```bash
+git reset --hard
+git pull origin main
+```
+
+### Après `git pull` (ex: après `stash pop`)
+
+S’il reste des fichiers modifiés:
+
+- Je garde mes modifs locales
+
+```bash
+git add <fichier>
+git commit -m "fix: maj après pull"
+```
+
+- Je garde uniquement la version distante (GitHub)
+
+```bash
+git restore <fichier>
+```
 
 ### 1️⃣ Mettre à jour `main`
 
