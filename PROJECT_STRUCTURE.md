@@ -13,7 +13,6 @@ app_flutter/
 │   │   └── services/               # Services métier
 │   ├── presentation/
 │   │   ├── pages/                  # Écrans
-│   │   ├── widgets/                # Composants réutilisables
 ├── assets/                        # Ressources statiques (images, fonts, etc.)
 ├── pubspec.yaml                   # Configuration des dépendances et métadonnées
 ├── README.md                      # Aperçu et instructions du projet
