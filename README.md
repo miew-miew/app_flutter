@@ -1,4 +1,4 @@
-# app_flutter
+# Motivation Over Excuses (MOE)
 
 Application Flutter de suivi d'habitudes.
 
