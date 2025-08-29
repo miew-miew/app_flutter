@@ -11,31 +11,26 @@ class HabitSchedule {
   @HiveField(1)
   final ScheduleType type;
 
-  // 1 = Monday ... 7 = Sunday (ISO-8601)
   @HiveField(2)
   final List<int>? daysOfWeek;
 
-  // Heures souhaitées au format "HH:mm" (ex: "20:30")
   @HiveField(3)
   final List<String>? times;
 
-  // Conservé pour compatibilité Hive (peut rester inutilisé)
   @HiveField(4)
   final String? timezone;
 
-  // Indices d'origine rétablis pour compatibilité binaire
   @HiveField(5)
   final DateTime? startDate;
 
   @HiveField(6)
   final DateTime? endDate;
 
-  // Champs legacy, conservés pour lecture d'anciennes données
   @HiveField(7)
-  final int? intervalN; // si type == intervalN
+  final int? intervalN;
 
   @HiveField(8)
-  final List<DateTime>? specificDates; // si type == specificDates
+  final List<DateTime>? specificDates;
 
   const HabitSchedule({
     required this.id,

@@ -101,38 +101,21 @@ class ReminderService {
     DateTime date,
     int weekday,
   ) {
-    // Default: if no schedule, consider daily starting from createdAt
     if (schedule == null) {
       final DateTime dayKey = _dayKey(date);
       final DateTime startKey = _dayKey(habit.createdAt);
       return !dayKey.isBefore(startKey);
     }
 
-    // Respect start/end
     if (_isOutsideRange(schedule, date)) return false;
 
     switch (schedule.type) {
       case ScheduleType.daily:
         return true;
-      case ScheduleType.weekdays:
-        return weekday >= 1 && weekday <= 5;
       case ScheduleType.customDays:
         final List<int>? days = schedule.daysOfWeek;
         if (days == null || days.isEmpty) return false;
         return days.contains(weekday);
-      case ScheduleType.intervalN:
-        if (schedule.intervalN == null || schedule.startDate == null) {
-          return false;
-        }
-        final int daysSinceStart = date
-            .difference(_dayKey(schedule.startDate!))
-            .inDays;
-        return daysSinceStart % schedule.intervalN! == 0;
-      case ScheduleType.specificDates:
-        final List<DateTime>? specific = schedule.specificDates;
-        if (specific == null) return false;
-        final DateTime dateKey = _dayKey(date);
-        return specific.any((d) => _dayKey(d).isAtSameMomentAs(dateKey));
     }
   }
 

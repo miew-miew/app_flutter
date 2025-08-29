@@ -62,9 +62,7 @@ class HabitService {
   Future<Habit> createHabit({
     required String title,
     required String scheduleId,
-    String? description,
     String? iconEmoji,
-    int? colorValue,
     int targetPerDay = 1,
     int? targetDurationSeconds,
     TrackingType trackingType = TrackingType.task,
@@ -72,9 +70,7 @@ class HabitService {
     final habit = Habit(
       id: _generateId(),
       title: title.trim(),
-      description: description?.trim(),
       iconEmoji: iconEmoji,
-      colorValue: colorValue,
       scheduleId: scheduleId,
       targetPerDay: targetPerDay,
       targetDurationSeconds: targetDurationSeconds,
@@ -126,9 +122,7 @@ class HabitService {
   Future<Habit> updateHabit({
     required String id,
     String? title,
-    String? description,
     String? iconEmoji,
-    int? colorValue,
     String? scheduleId,
     int? targetPerDay,
     int? targetDurationSeconds,
@@ -165,9 +159,7 @@ class HabitService {
     final updatedHabit = Habit(
       id: existingHabit.id,
       title: title ?? existingHabit.title,
-      description: description ?? existingHabit.description,
       iconEmoji: iconEmoji ?? existingHabit.iconEmoji,
-      colorValue: colorValue ?? existingHabit.colorValue,
       scheduleId: scheduleId ?? existingHabit.scheduleId,
       targetPerDay: resolvedTargetPerDay,
       targetDurationSeconds: resolvedTargetDurationSeconds,
@@ -240,34 +232,11 @@ class HabitService {
 
           switch (schedule.type) {
             case ScheduleType.daily:
-              // Habitudes quotidiennes : tous les jours
               return true;
-            case ScheduleType.weekdays:
-              // Habitudes en semaine : lundi à vendredi (1-5)
-              return weekday >= 1 && weekday <= 5;
             case ScheduleType.customDays:
-              // Habitudes personnalisées : seulement les jours spécifiés
               final daysOfWeek = schedule.daysOfWeek;
               if (daysOfWeek == null || daysOfWeek.isEmpty) return false;
               return daysOfWeek.contains(weekday);
-            case ScheduleType.intervalN:
-              // Habitudes tous les N jours : calculer depuis la date de début
-              if (schedule.intervalN == null || schedule.startDate == null) {
-                return false;
-              }
-              final daysSinceStart = date
-                  .difference(schedule.startDate!)
-                  .inDays;
-              return daysSinceStart % schedule.intervalN! == 0;
-            case ScheduleType.specificDates:
-              // Habitudes à des dates précises
-              final specificDates = schedule.specificDates;
-              if (specificDates == null) return false;
-              final dateKey = DateTime(date.year, date.month, date.day);
-              return specificDates.any(
-                (d) =>
-                    DateTime(d.year, d.month, d.day).isAtSameMomentAs(dateKey),
-              );
           }
         })
         .map((habit) {
@@ -276,9 +245,7 @@ class HabitService {
             return Habit(
               id: habit.id,
               title: habit.title,
-              description: habit.description,
               iconEmoji: habit.iconEmoji,
-              colorValue: habit.colorValue,
               scheduleId: habit.scheduleId,
               targetPerDay: habit.targetPerDay,
               targetDurationSeconds: habit.targetDurationSeconds,
@@ -346,9 +313,7 @@ class HabitService {
     return (await getQuantityCountForDate(habitId, date)) > 0;
   }
 
-  /// Statut pour un jour donné: complété/manqué/en attente
   Future<String> getDayStatus(String habitId, DateTime date) async {
-    // Complété si au moins un log (done) ce jour
     final Box<HabitLog> box = Boxes.habitLogsBox();
     final DateTime key = _dayKey(date);
     final hasDone = box.values.any(
@@ -361,7 +326,6 @@ class HabitService {
 
     final DateTime todayKey = _dayKey(DateTime.now());
     if (key.isAfter(todayKey)) return 'pending';
-    // Jour passé et pas complété => manqué
     return 'missed';
   }
 

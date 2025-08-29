@@ -6,14 +6,8 @@ part 'enums.g.dart';
 enum ScheduleType {
   @HiveField(0)
   daily,
-  @HiveField(1)
-  weekdays,
   @HiveField(2)
-  customDays, // ex: [1,3,5]
-  @HiveField(3)
-  intervalN, // ex: tous les N jours
-  @HiveField(4)
-  specificDates, // dates précises
+  customDays,
 }
 
 @HiveType(typeId: 7)
@@ -21,29 +15,17 @@ enum HabitStatus {
   @HiveField(0)
   done,
   @HiveField(1)
-  skipped,
-  @HiveField(2)
   missed,
-  @HiveField(3)
-  running, // Timer actif en cours
-}
-
-@HiveType(typeId: 8)
-enum AppThemeMode {
-  @HiveField(0)
-  system,
-  @HiveField(1)
-  light,
   @HiveField(2)
-  dark,
+  running,
 }
 
 @HiveType(typeId: 9)
 enum TrackingType {
   @HiveField(0)
-  task, // Tâche simple
+  task, 
   @HiveField(1)
-  quantity, // Quantité
+  quantity, 
   @HiveField(2)
-  time, // Temps
+  time, 
 }

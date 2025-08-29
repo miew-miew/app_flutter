@@ -19,9 +19,7 @@ class HabitAdapter extends TypeAdapter<Habit> {
     return Habit(
       id: fields[0] as String,
       title: fields[1] as String,
-      description: fields[2] as String?,
       iconEmoji: fields[3] as String?,
-      colorValue: fields[4] as int?,
       scheduleId: fields[5] as String,
       targetPerDay: fields[6] as int,
       targetDurationSeconds: fields[7] as int?,
@@ -38,17 +36,13 @@ class HabitAdapter extends TypeAdapter<Habit> {
   @override
   void write(BinaryWriter writer, Habit obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.title)
-      ..writeByte(2)
-      ..write(obj.description)
       ..writeByte(3)
       ..write(obj.iconEmoji)
-      ..writeByte(4)
-      ..write(obj.colorValue)
       ..writeByte(5)
       ..write(obj.scheduleId)
       ..writeByte(6)

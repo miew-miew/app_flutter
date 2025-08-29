@@ -15,14 +15,8 @@ class ScheduleTypeAdapter extends TypeAdapter<ScheduleType> {
     switch (reader.readByte()) {
       case 0:
         return ScheduleType.daily;
-      case 1:
-        return ScheduleType.weekdays;
       case 2:
         return ScheduleType.customDays;
-      case 3:
-        return ScheduleType.intervalN;
-      case 4:
-        return ScheduleType.specificDates;
       default:
         return ScheduleType.daily;
     }
@@ -34,17 +28,8 @@ class ScheduleTypeAdapter extends TypeAdapter<ScheduleType> {
       case ScheduleType.daily:
         writer.writeByte(0);
         break;
-      case ScheduleType.weekdays:
-        writer.writeByte(1);
-        break;
       case ScheduleType.customDays:
         writer.writeByte(2);
-        break;
-      case ScheduleType.intervalN:
-        writer.writeByte(3);
-        break;
-      case ScheduleType.specificDates:
-        writer.writeByte(4);
         break;
     }
   }
@@ -70,10 +55,8 @@ class HabitStatusAdapter extends TypeAdapter<HabitStatus> {
       case 0:
         return HabitStatus.done;
       case 1:
-        return HabitStatus.skipped;
-      case 2:
         return HabitStatus.missed;
-      case 3:
+      case 2:
         return HabitStatus.running;
       default:
         return HabitStatus.done;
@@ -86,14 +69,11 @@ class HabitStatusAdapter extends TypeAdapter<HabitStatus> {
       case HabitStatus.done:
         writer.writeByte(0);
         break;
-      case HabitStatus.skipped:
+      case HabitStatus.missed:
         writer.writeByte(1);
         break;
-      case HabitStatus.missed:
-        writer.writeByte(2);
-        break;
       case HabitStatus.running:
-        writer.writeByte(3);
+        writer.writeByte(2);
         break;
     }
   }
