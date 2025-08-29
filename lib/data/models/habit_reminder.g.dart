@@ -21,17 +21,13 @@ class HabitReminderAdapter extends TypeAdapter<HabitReminder> {
       habitId: fields[1] as String,
       time: fields[2] as String,
       enabled: fields[3] as bool,
-      daysOfWeek: (fields[4] as List?)?.cast<int>(),
-      notificationChannelId: fields[5] as String?,
-      sound: fields[6] as bool?,
-      vibrate: fields[7] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, HabitReminder obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -39,15 +35,7 @@ class HabitReminderAdapter extends TypeAdapter<HabitReminder> {
       ..writeByte(2)
       ..write(obj.time)
       ..writeByte(3)
-      ..write(obj.enabled)
-      ..writeByte(4)
-      ..write(obj.daysOfWeek)
-      ..writeByte(5)
-      ..write(obj.notificationChannelId)
-      ..writeByte(6)
-      ..write(obj.sound)
-      ..writeByte(7)
-      ..write(obj.vibrate);
+      ..write(obj.enabled);
   }
 
   @override

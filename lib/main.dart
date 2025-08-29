@@ -1,10 +1,8 @@
-import 'package:app_flutter/data/models/app_settings.dart';
 import 'package:app_flutter/data/models/enums.dart';
 import 'package:app_flutter/data/models/habit.dart';
 import 'package:app_flutter/data/models/habit_log.dart';
 import 'package:app_flutter/data/models/habit_reminder.dart';
 import 'package:app_flutter/data/models/habit_schedule.dart';
-import 'package:app_flutter/data/models/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -28,19 +26,47 @@ void main() async {
     ..registerAdapter(HabitScheduleAdapter())
     ..registerAdapter(HabitReminderAdapter())
     ..registerAdapter(HabitLogAdapter())
-    ..registerAdapter(UserProfileAdapter())
-    ..registerAdapter(AppSettingsAdapter())
     ..registerAdapter(ScheduleTypeAdapter())
     ..registerAdapter(HabitStatusAdapter())
-    ..registerAdapter(TrackingTypeAdapter())
-    ..registerAdapter(AppThemeModeAdapter());
+    ..registerAdapter(TrackingTypeAdapter());
 
   await Hive.openBox<Habit>(Boxes.habits);
   await Hive.openBox<HabitSchedule>(Boxes.habitSchedules);
   await Hive.openBox<HabitLog>(Boxes.habitLogs);
-  await Hive.openBox<AppSettings>(Boxes.appSettings);
+
+  // Migration légère des données existantes (sécurisation nulls)
+  await _migrateLegacySchedules();
 
   runApp(const MyApp());
+}
+
+Future<void> _migrateLegacySchedules() async {
+  final box = Hive.box<HabitSchedule>(Boxes.habitSchedules);
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  for (final key in box.keys) {
+    final sched = box.get(key);
+    if (sched == null) continue;
+    DateTime start = sched.startDate ?? today;
+    DateTime? end = sched.endDate;
+    if (end != null && end.isBefore(start)) {
+      end = null;
+    }
+    if (start != sched.startDate || end != sched.endDate) {
+      final fixed = HabitSchedule(
+        id: sched.id,
+        type: sched.type,
+        daysOfWeek: sched.daysOfWeek,
+        times: sched.times,
+        timezone: sched.timezone,
+        startDate: start,
+        endDate: end,
+        intervalN: sched.intervalN,
+        specificDates: sched.specificDates,
+      );
+      await box.put(sched.id, fixed);
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -65,7 +91,9 @@ class MyApp extends StatelessWidget {
             final args = ModalRoute.of(context)!.settings.arguments as Map?;
             final habitId = args?['habitId'] as String?;
             if (habitId == null) {
-              return const Scaffold(body: Center(child: Text('HabitId manquant')));
+              return const Scaffold(
+                body: Center(child: Text('HabitId manquant')),
+              );
             }
             return EditHabitPage(habitId: habitId);
           },

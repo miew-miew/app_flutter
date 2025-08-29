@@ -42,11 +42,16 @@ class SettingsPage extends StatelessWidget {
       if (!Hive.isBoxOpen(Boxes.habitReminders)) {
         await Hive.openBox(Boxes.habitReminders);
       }
+      // Optional legacy boxes
       if (!Hive.isBoxOpen(Boxes.userProfile)) {
-        await Hive.openBox(Boxes.userProfile);
+        try {
+          await Hive.openBox(Boxes.userProfile);
+        } catch (_) {}
       }
       if (!Hive.isBoxOpen(Boxes.appSettings)) {
-        await Hive.openBox(Boxes.appSettings);
+        try {
+          await Hive.openBox(Boxes.appSettings);
+        } catch (_) {}
       }
 
       // Supprimer toutes les boxes du disque
@@ -54,8 +59,13 @@ class SettingsPage extends StatelessWidget {
       await Boxes.habitLogsBox().deleteFromDisk();
       await Boxes.habitSchedulesBox().deleteFromDisk();
       await Boxes.habitRemindersBox().deleteFromDisk();
-      await Boxes.userProfileBox().deleteFromDisk();
-      await Boxes.appSettingsBox().deleteFromDisk();
+      // Delete legacy boxes if present
+      try {
+        await Hive.box(Boxes.userProfile).deleteFromDisk();
+      } catch (_) {}
+      try {
+        await Hive.box(Boxes.appSettings).deleteFromDisk();
+      } catch (_) {}
 
       // Nettoyer SharedPreferences (nom + onboarding)
       final prefs = await SharedPreferences.getInstance();

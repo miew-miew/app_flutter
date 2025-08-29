@@ -43,14 +43,6 @@ class Habit {
   @HiveField(10)
   final DateTime updatedAt;
 
-  // Pour ordonner dans la liste
-  @HiveField(11)
-  final int orderIndex;
-
-  // Optionnel: catégories/tags
-  @HiveField(12)
-  final List<String>? tagIds;
-
   // === Nouveaux champs ===
   @HiveField(13)
   final TrackingType? trackingType; // tâche, quantité, temps
@@ -67,13 +59,6 @@ class Habit {
   @HiveField(17)
   final String? reminderTime;
 
-  // Dates de début/fin
-  @HiveField(18)
-  final DateTime? startDate;
-
-  @HiveField(19)
-  final DateTime? endDate; // null = jamais
-
   const Habit({
     required this.id,
     required this.title,
@@ -86,13 +71,9 @@ class Habit {
     this.isArchived = false,
     required this.createdAt,
     required this.updatedAt,
-    this.orderIndex = 0,
-    this.tagIds,
     this.trackingType,
     this.frequency,
     this.weeklyDays,
     this.reminderTime,
-    this.startDate,
-    this.endDate,
   });
 }

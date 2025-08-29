@@ -182,11 +182,8 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 '${_reminder!.hour.toString().padLeft(2, '0')}:${_reminder!.minute.toString().padLeft(2, '0')}',
               ]
             : null,
-        timezone: null,
         startDate: _startDate!,
         endDate: _noEnd ? null : _endDate,
-        intervalN: null,
-        specificDates: null,
       );
 
       // Créer l'habitude avec le schedule

@@ -19,15 +19,18 @@ class HabitSchedule {
   @HiveField(3)
   final List<String>? times;
 
+  // Conservé pour compatibilité Hive (peut rester inutilisé)
   @HiveField(4)
   final String? timezone;
 
+  // Indices d'origine rétablis pour compatibilité binaire
   @HiveField(5)
-  final DateTime startDate;
+  final DateTime? startDate;
 
   @HiveField(6)
   final DateTime? endDate;
 
+  // Champs legacy, conservés pour lecture d'anciennes données
   @HiveField(7)
   final int? intervalN; // si type == intervalN
 
@@ -40,7 +43,7 @@ class HabitSchedule {
     this.daysOfWeek,
     this.times,
     this.timezone,
-    required this.startDate,
+    this.startDate,
     this.endDate,
     this.intervalN,
     this.specificDates,

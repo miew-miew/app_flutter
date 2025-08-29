@@ -4,8 +4,6 @@ import 'models/habit.dart';
 import 'models/habit_schedule.dart';
 import 'models/habit_reminder.dart';
 import 'models/habit_log.dart';
-import 'models/user_profile.dart';
-import 'models/app_settings.dart';
 
 class Boxes {
   static const habits = 'habits';
@@ -21,8 +19,5 @@ class Boxes {
   static Box<HabitReminder> habitRemindersBox() =>
       Hive.box<HabitReminder>(habitReminders);
   static Box<HabitLog> habitLogsBox() => Hive.box<HabitLog>(habitLogs);
-  static Box<UserProfile> userProfileBox() =>
-      Hive.box<UserProfile>(userProfile);
-  static Box<AppSettings> appSettingsBox() =>
-      Hive.box<AppSettings>(appSettings);
+  // Keep names for deletion-only usage in SettingsPage; no typed accessors
 }

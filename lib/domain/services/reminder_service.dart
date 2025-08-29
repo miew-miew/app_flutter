@@ -121,9 +121,11 @@ class ReminderService {
         if (days == null || days.isEmpty) return false;
         return days.contains(weekday);
       case ScheduleType.intervalN:
-        if (schedule.intervalN == null) return false;
+        if (schedule.intervalN == null || schedule.startDate == null) {
+          return false;
+        }
         final int daysSinceStart = date
-            .difference(_dayKey(schedule.startDate))
+            .difference(_dayKey(schedule.startDate!))
             .inDays;
         return daysSinceStart % schedule.intervalN! == 0;
       case ScheduleType.specificDates:
@@ -136,7 +138,9 @@ class ReminderService {
 
   bool _isOutsideRange(HabitSchedule schedule, DateTime date) {
     final DateTime dayKey = _dayKey(date);
-    final DateTime startKey = _dayKey(schedule.startDate);
+    final DateTime startKey = _dayKey(
+      schedule.startDate ?? DateTime(1970, 1, 1),
+    );
     if (dayKey.isBefore(startKey)) return true;
     if (schedule.endDate != null) {
       final DateTime endKey = _dayKey(schedule.endDate!);
