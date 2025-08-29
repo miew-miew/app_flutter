@@ -33,52 +33,68 @@ class SettingsPage extends StatelessWidget {
     if (confirmed != true) return;
 
     try {
-      // Ouvrir si nécessaire
-      if (!Hive.isBoxOpen(Boxes.habits)) await Hive.openBox(Boxes.habits);
-      if (!Hive.isBoxOpen(Boxes.habitLogs)) await Hive.openBox(Boxes.habitLogs);
-      if (!Hive.isBoxOpen(Boxes.habitSchedules)) {
-        await Hive.openBox(Boxes.habitSchedules);
-      }
-      if (!Hive.isBoxOpen(Boxes.habitReminders)) {
-        await Hive.openBox(Boxes.habitReminders);
-      }
-      // Optional legacy boxes
-      if (!Hive.isBoxOpen(Boxes.userProfile)) {
-        try {
-          await Hive.openBox(Boxes.userProfile);
-        } catch (_) {}
-      }
-      if (!Hive.isBoxOpen(Boxes.appSettings)) {
-        try {
-          await Hive.openBox(Boxes.appSettings);
-        } catch (_) {}
-      }
-
-      // Supprimer toutes les boxes du disque
-      await Boxes.habitsBox().deleteFromDisk();
-      await Boxes.habitLogsBox().deleteFromDisk();
-      await Boxes.habitSchedulesBox().deleteFromDisk();
-      await Boxes.habitRemindersBox().deleteFromDisk();
-      // Delete legacy boxes if present
-      try {
-        await Hive.box(Boxes.userProfile).deleteFromDisk();
-      } catch (_) {}
-      try {
-        await Hive.box(Boxes.appSettings).deleteFromDisk();
-      } catch (_) {}
-
-      // Nettoyer SharedPreferences (nom + onboarding)
+      // Nettoyer SharedPreferences (nom + onboarding) EN PREMIER
       final prefs = await SharedPreferences.getInstance();
+      
+      // Supprimer explicitement les clés importantes d'abord
+      await prefs.remove('onboarding_completed');
+      await prefs.remove('user_name');
+      
+      // Puis tout nettoyer
       await prefs.clear();
+      
+      // commit() est déprécié et no-op sur les plateformes récentes, on s'appuie sur clear/remove
 
+      // REDIRIGER IMMÉDIATEMENT vers le splash
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Compte supprimé. Données nettoyées.')),
         );
         Navigator.of(
           context,
-        ).pushNamedAndRemoveUntil('/onboarding', (r) => false);
+        ).pushNamedAndRemoveUntil('/', (r) => false);
       }
+      
+      // SUPPRIMER LES BOXES HIVE APRÈS la redirection (dans une Future détachée)
+      // pour éviter tout blocage/erreur visible côté UI
+      Future(() async {
+        try {
+          try {
+            await Boxes.habitsBox().deleteFromDisk();
+          } catch (e) {
+            await Boxes.habitsBox().clear();
+          }
+          try {
+            await Boxes.habitLogsBox().deleteFromDisk();
+          } catch (e) {
+            await Boxes.habitLogsBox().clear();
+          }
+          try {
+            await Boxes.habitSchedulesBox().deleteFromDisk();
+          } catch (e) {
+            await Boxes.habitSchedulesBox().clear();
+          }
+          try {
+            await Boxes.habitRemindersBox().deleteFromDisk();
+          } catch (e) {
+            await Boxes.habitRemindersBox().clear();
+          }
+          try {
+            await Hive.box(Boxes.userProfile).deleteFromDisk();
+          } catch (e) {
+            try {
+              await Hive.box(Boxes.userProfile).clear();
+            } catch (_) {}
+          }
+          try {
+            await Hive.box(Boxes.appSettings).deleteFromDisk();
+          } catch (e) {
+            try {
+              await Hive.box(Boxes.appSettings).clear();
+            } catch (_) {}
+          }
+        } catch (_) {}
+      });
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
