@@ -62,28 +62,21 @@ class HabitService {
   Future<Habit> createHabit({
     required String title,
     required String scheduleId,
-    String? description,
     String? iconEmoji,
-    int? colorValue,
     int targetPerDay = 1,
     int? targetDurationSeconds,
-    List<String>? tagIds,
     TrackingType trackingType = TrackingType.task,
   }) async {
     final habit = Habit(
       id: _generateId(),
       title: title.trim(),
-      description: description?.trim(),
       iconEmoji: iconEmoji,
-      colorValue: colorValue,
       scheduleId: scheduleId,
       targetPerDay: targetPerDay,
       targetDurationSeconds: targetDurationSeconds,
       isArchived: false,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-      orderIndex: await _getNextOrderIndex(),
-      tagIds: tagIds,
       trackingType: trackingType,
     );
 
@@ -97,22 +90,16 @@ class HabitService {
     required ScheduleType type,
     List<int>? daysOfWeek,
     List<String>? times,
-    String? timezone,
     required DateTime startDate,
     DateTime? endDate,
-    int? intervalN,
-    List<DateTime>? specificDates,
   }) async {
     final schedule = HabitSchedule(
       id: id,
       type: type,
       daysOfWeek: daysOfWeek,
       times: times,
-      timezone: timezone,
       startDate: startDate,
       endDate: endDate,
-      intervalN: intervalN,
-      specificDates: specificDates,
     );
 
     await _habitRepository.createHabitSchedule(schedule);
@@ -135,13 +122,10 @@ class HabitService {
   Future<Habit> updateHabit({
     required String id,
     String? title,
-    String? description,
     String? iconEmoji,
-    int? colorValue,
     String? scheduleId,
     int? targetPerDay,
     int? targetDurationSeconds,
-    List<String>? tagIds,
     TrackingType? trackingType,
   }) async {
     final existingHabit = await _habitRepository.getHabitById(id);
@@ -153,14 +137,18 @@ class HabitService {
     int resolvedTargetPerDay = targetPerDay ?? existingHabit.targetPerDay;
     int? resolvedTargetDurationSeconds =
         targetDurationSeconds ?? existingHabit.targetDurationSeconds;
-    final TrackingType resolvedTracking = trackingType ?? existingHabit.trackingType ?? TrackingType.task;
+    final TrackingType resolvedTracking =
+        trackingType ?? existingHabit.trackingType ?? TrackingType.task;
     if (resolvedTracking == TrackingType.quantity) {
       // s'assurer qu'on a au moins 1
-      resolvedTargetPerDay = (resolvedTargetPerDay <= 0) ? 1 : resolvedTargetPerDay;
+      resolvedTargetPerDay = (resolvedTargetPerDay <= 0)
+          ? 1
+          : resolvedTargetPerDay;
       resolvedTargetDurationSeconds = null;
     } else if (resolvedTracking == TrackingType.time) {
       // durée requise, quantité non pertinente
-      resolvedTargetPerDay = existingHabit.targetPerDay; // ne pas forcer à 1 mais quantité n'est pas utilisée
+      resolvedTargetPerDay = existingHabit
+          .targetPerDay; // ne pas forcer à 1 mais quantité n'est pas utilisée
       // si pas fourni, garder l'existant
     } else if (resolvedTracking == TrackingType.task) {
       // tâche simple: quantité par défaut à 1, pas de durée
@@ -171,17 +159,13 @@ class HabitService {
     final updatedHabit = Habit(
       id: existingHabit.id,
       title: title ?? existingHabit.title,
-      description: description ?? existingHabit.description,
       iconEmoji: iconEmoji ?? existingHabit.iconEmoji,
-      colorValue: colorValue ?? existingHabit.colorValue,
       scheduleId: scheduleId ?? existingHabit.scheduleId,
       targetPerDay: resolvedTargetPerDay,
       targetDurationSeconds: resolvedTargetDurationSeconds,
       isArchived: existingHabit.isArchived,
       createdAt: existingHabit.createdAt,
       updatedAt: DateTime.now(),
-      orderIndex: existingHabit.orderIndex,
-      tagIds: tagIds ?? existingHabit.tagIds,
       trackingType: resolvedTracking,
     );
 
@@ -204,7 +188,9 @@ class HabitService {
     }
 
     // Supprimer le schedule associé si présent
-    final Box<HabitSchedule> schedulesBox = Hive.box<HabitSchedule>(Boxes.habitSchedules);
+    final Box<HabitSchedule> schedulesBox = Hive.box<HabitSchedule>(
+      Boxes.habitSchedules,
+    );
     if (schedulesBox.containsKey(habit.scheduleId)) {
       await schedulesBox.delete(habit.scheduleId);
     }
@@ -233,11 +219,8 @@ class HabitService {
               type: ScheduleType.daily,
               daysOfWeek: null,
               times: null,
-              timezone: null,
               startDate: habit.createdAt,
               endDate: null,
-              intervalN: null,
-              specificDates: null,
             );
             scheduleMap[habit.scheduleId] = defaultSchedule;
             // Respect start/end
@@ -249,30 +232,11 @@ class HabitService {
 
           switch (schedule.type) {
             case ScheduleType.daily:
-              // Habitudes quotidiennes : tous les jours
               return true;
-            case ScheduleType.weekdays:
-              // Habitudes en semaine : lundi à vendredi (1-5)
-              return weekday >= 1 && weekday <= 5;
             case ScheduleType.customDays:
-              // Habitudes personnalisées : seulement les jours spécifiés
               final daysOfWeek = schedule.daysOfWeek;
               if (daysOfWeek == null || daysOfWeek.isEmpty) return false;
               return daysOfWeek.contains(weekday);
-            case ScheduleType.intervalN:
-              // Habitudes tous les N jours : calculer depuis la date de début
-              if (schedule.intervalN == null) return false;
-              final daysSinceStart = date.difference(schedule.startDate).inDays;
-              return daysSinceStart % schedule.intervalN! == 0;
-            case ScheduleType.specificDates:
-              // Habitudes à des dates précises
-              final specificDates = schedule.specificDates;
-              if (specificDates == null) return false;
-              final dateKey = DateTime(date.year, date.month, date.day);
-              return specificDates.any(
-                (d) =>
-                    DateTime(d.year, d.month, d.day).isAtSameMomentAs(dateKey),
-              );
           }
         })
         .map((habit) {
@@ -281,23 +245,17 @@ class HabitService {
             return Habit(
               id: habit.id,
               title: habit.title,
-              description: habit.description,
               iconEmoji: habit.iconEmoji,
-              colorValue: habit.colorValue,
               scheduleId: habit.scheduleId,
               targetPerDay: habit.targetPerDay,
               targetDurationSeconds: habit.targetDurationSeconds,
               isArchived: habit.isArchived,
               createdAt: habit.createdAt,
               updatedAt: habit.updatedAt,
-              orderIndex: habit.orderIndex,
-              tagIds: habit.tagIds,
               trackingType: TrackingType.task, // Valeur par défaut
               frequency: habit.frequency ?? 'daily',
               weeklyDays: habit.weeklyDays,
               reminderTime: habit.reminderTime,
-              startDate: habit.startDate,
-              endDate: habit.endDate,
             );
           }
           return habit;
@@ -307,7 +265,9 @@ class HabitService {
 
   bool _isOutsideRange(HabitSchedule schedule, DateTime date) {
     final DateTime dayKey = _dayKey(date);
-    final DateTime startKey = _dayKey(schedule.startDate);
+    final DateTime startKey = _dayKey(
+      schedule.startDate ?? DateTime(1970, 1, 1),
+    );
     if (dayKey.isBefore(startKey)) return true;
     if (schedule.endDate != null) {
       final endKey = _dayKey(schedule.endDate!);
@@ -353,9 +313,7 @@ class HabitService {
     return (await getQuantityCountForDate(habitId, date)) > 0;
   }
 
-  /// Statut pour un jour donné: complété/manqué/en attente
   Future<String> getDayStatus(String habitId, DateTime date) async {
-    // Complété si au moins un log (done) ce jour
     final Box<HabitLog> box = Boxes.habitLogsBox();
     final DateTime key = _dayKey(date);
     final hasDone = box.values.any(
@@ -368,7 +326,6 @@ class HabitService {
 
     final DateTime todayKey = _dayKey(DateTime.now());
     if (key.isAfter(todayKey)) return 'pending';
-    // Jour passé et pas complété => manqué
     return 'missed';
   }
 
@@ -589,72 +546,5 @@ class HabitService {
 
   String _generateId() {
     return 'habit_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
-  }
-
-  Future<int> _getNextOrderIndex() async {
-    final habits = await getAllHabits();
-    if (habits.isEmpty) return 0;
-
-    final maxOrder = habits
-        .map((h) => h.orderIndex)
-        .reduce((a, b) => a > b ? a : b);
-    return maxOrder + 1;
-  }
-
-  /// Méthode de test pour créer une habitude "Relaxation" avec fréquence personnalisée
-  Future<void> createTestRelaxationHabit() async {
-    // Créer un schedule pour vendredi, samedi, dimanche (5, 6, 7)
-    final scheduleId = 'test_relaxation_schedule';
-    await createHabitSchedule(
-      id: scheduleId,
-      type: ScheduleType.daily,
-      daysOfWeek: [5, 6, 7], // Vendredi, samedi, dimanche
-      times: null,
-      timezone: null,
-      startDate: DateTime.now(),
-      endDate: null,
-      intervalN: null,
-      specificDates: null,
-    );
-
-    // Créer l'habitude "Relaxation"
-    await createHabit(
-      title: 'Relaxation',
-      scheduleId: scheduleId,
-      iconEmoji: '🧘',
-      targetPerDay: 1,
-      trackingType: TrackingType.time,
-      targetDurationSeconds: 300, // 5 minutes
-    );
-  }
-
-  /// Méthode de test pour créer une habitude avec un timer actif
-  Future<void> createTestHabitWithActiveTimer() async {
-    // Créer un schedule quotidien
-    final scheduleId = 'test_timer_schedule';
-    await createHabitSchedule(
-      id: scheduleId,
-      type: ScheduleType.daily,
-      daysOfWeek: null,
-      times: null,
-      timezone: null,
-      startDate: DateTime.now(),
-      endDate: null,
-      intervalN: null,
-      specificDates: null,
-    );
-
-    // Créer l'habitude "Test Timer"
-    final habit = await createHabit(
-      title: 'Test Timer',
-      scheduleId: scheduleId,
-      iconEmoji: '⏱️',
-      targetPerDay: 1,
-      trackingType: TrackingType.time,
-      targetDurationSeconds: 60, // 1 minute
-    );
-
-    // Démarrer un timer pour cette habitude
-    await toggleTimeTracking(habit);
   }
 }

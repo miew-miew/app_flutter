@@ -11,11 +11,9 @@ class HabitSchedule {
   @HiveField(1)
   final ScheduleType type;
 
-  // 1 = Monday ... 7 = Sunday (ISO-8601)
   @HiveField(2)
   final List<int>? daysOfWeek;
 
-  // Heures souhaitées au format "HH:mm" (ex: "20:30")
   @HiveField(3)
   final List<String>? times;
 
@@ -23,16 +21,16 @@ class HabitSchedule {
   final String? timezone;
 
   @HiveField(5)
-  final DateTime startDate;
+  final DateTime? startDate;
 
   @HiveField(6)
   final DateTime? endDate;
 
   @HiveField(7)
-  final int? intervalN; // si type == intervalN
+  final int? intervalN;
 
   @HiveField(8)
-  final List<DateTime>? specificDates; // si type == specificDates
+  final List<DateTime>? specificDates;
 
   const HabitSchedule({
     required this.id,
@@ -40,7 +38,7 @@ class HabitSchedule {
     this.daysOfWeek,
     this.times,
     this.timezone,
-    required this.startDate,
+    this.startDate,
     this.endDate,
     this.intervalN,
     this.specificDates,

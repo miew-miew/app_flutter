@@ -22,7 +22,7 @@ class HabitScheduleAdapter extends TypeAdapter<HabitSchedule> {
       daysOfWeek: (fields[2] as List?)?.cast<int>(),
       times: (fields[3] as List?)?.cast<String>(),
       timezone: fields[4] as String?,
-      startDate: fields[5] as DateTime,
+      startDate: fields[5] as DateTime?,
       endDate: fields[6] as DateTime?,
       intervalN: fields[7] as int?,
       specificDates: (fields[8] as List?)?.cast<DateTime>(),

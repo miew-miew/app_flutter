@@ -125,11 +125,21 @@ class _EditHabitPageState extends State<EditHabitPage> {
       context: context,
       firstDate: isStart ? today : (_startDate ?? today),
       lastDate: DateTime(now.year + 10),
-      initialDate: base,
+      initialDate: _clampInitialDate(
+        initial: base,
+        first: isStart ? today : (_startDate ?? today),
+      ),
     );
     if (res != null) {
       setState(() => isStart ? _startDate = res : _endDate = res);
     }
+  }
+
+  DateTime _clampInitialDate({
+    required DateTime initial,
+    required DateTime first,
+  }) {
+    return initial.isBefore(first) ? first : initial;
   }
 
   Future<void> _pickDuration() async {
@@ -254,11 +264,8 @@ class _EditHabitPageState extends State<EditHabitPage> {
         type: scheduleType,
         daysOfWeek: daysOfWeek,
         times: times,
-        timezone: null,
         startDate: _startDate ?? _habit.createdAt,
         endDate: _noEnd ? null : _endDate,
-        intervalN: null,
-        specificDates: null,
       );
       await habitService.updateHabitSchedule(updatedSchedule);
 
@@ -327,7 +334,7 @@ class _EditHabitPageState extends State<EditHabitPage> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<TrackingType>(
-                        value: _trackingType,
+                        initialValue: _trackingType,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                         ),
@@ -364,8 +371,9 @@ class _EditHabitPageState extends State<EditHabitPage> {
                             border: OutlineInputBorder(),
                           ),
                           validator: (v) {
-                            if (_trackingType != TrackingType.quantity)
+                            if (_trackingType != TrackingType.quantity) {
                               return null;
+                            }
                             final n = int.tryParse((v ?? '').trim());
                             if (n == null || n < 1) return '>= 1';
                             return null;
@@ -419,7 +427,7 @@ class _EditHabitPageState extends State<EditHabitPage> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _frequency,
+                        initialValue: _frequency,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
                         ),

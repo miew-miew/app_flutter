@@ -182,11 +182,8 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 '${_reminder!.hour.toString().padLeft(2, '0')}:${_reminder!.minute.toString().padLeft(2, '0')}',
               ]
             : null,
-        timezone: null,
         startDate: _startDate!,
         endDate: _noEnd ? null : _endDate,
-        intervalN: null,
-        specificDates: null,
       );
 
       // Créer l'habitude avec le schedule
@@ -254,7 +251,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<TrackingType>(
-                  value: _trackingType,
+                  initialValue: _trackingType,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),
@@ -346,7 +343,7 @@ class _CreateHabitPageState extends State<CreateHabitPage> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _frequency,
+                  initialValue: _frequency,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                   ),
